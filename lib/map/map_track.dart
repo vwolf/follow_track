@@ -43,6 +43,10 @@ class MapTrackState extends State<MapTrack> {
   bool _offline = false;
   bool _location = false;
 
+  void setOffline(bool value) {
+    _offline = value;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -93,6 +97,11 @@ class MapTrackState extends State<MapTrack> {
 
         event.msg(status);
         break;
+
+      case "offline" :
+        _offline = event.msg;
+
+        break;
     }
   }
 
@@ -133,7 +142,7 @@ class MapTrackState extends State<MapTrack> {
           TileLayerOptions(
             offlineMode: _offline,
             fromAssets: false,
-            urlTemplate: _offline ? "/storage/emulated/0/Tracks/map_tiles/gransee_zedenick/{z}/{x}/{y}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            urlTemplate: _offline ? "${trackService.pathToOfflineMap}/{z}/{x}/{y}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             //urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             subdomains: _offline ? const <String>[] : ['a', 'b', 'c'],
           ),

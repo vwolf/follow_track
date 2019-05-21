@@ -56,9 +56,12 @@ class MapPageState extends State<MapPage> {
     switch (trackingPageStreamMsg.type) {
       case "mapStatusLayerAction" :
         if ( trackingPageStreamMsg.msg == "offline_on") {
-          _offlineMapDialog = true;
-          //_askedToLead();
-          openFileIO();
+          if (_mapTrack.trackService.pathToOfflineMap == null ) {
+            _offlineMapDialog = true;
+            openFileIO();
+          } else {
+
+          }
         };
         break;
     };
@@ -80,7 +83,9 @@ class MapPageState extends State<MapPage> {
   }
 
 
-  /// Open kind of directory browser to select the director which contains the map tiles
+  /// Open a kind of directory browser to select the director which contains the map tiles
+  ///
+  /// ToDo Open in a new page?
   openFileIO() {
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
@@ -89,37 +94,40 @@ class MapPageState extends State<MapPage> {
     );
   }
 
+
   // callback offline map directory selection
   void getMapPath(String mapPath) {
     print("mapPath: $mapPath");
     _mapPath = mapPath;
+    _mapTrack.trackService.pathToOfflineMap = _mapPath;
+    _streamController.add(TrackPageStreamMsg("offline", true));
   }
 
 
-  Future<void> _askedToLead() async {
-    switch (await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return SimpleDialog(
-            title: const Text('Where is the offline map?'),
-            children: <Widget>[
-              SimpleDialogOption(
-                onPressed: () async {
-                  String pathToTrack = await FilePicker.getFilePath(type: FileType.ANY);
-                },
-                child: const Text('Choose'),
-              ),
-              SimpleDialogOption(
-                onPressed: () { Navigator.pop(context); },
-                child: const Text('Exit'),
-              ),
-            ],
-          );
-        }
-    )) {
-
-    }
-  }
+//  Future<void> _askedToLead() async {
+//    switch (await showDialog(
+//        context: context,
+//        builder: (BuildContext context) {
+//          return SimpleDialog(
+//            title: const Text('Where is the offline map?'),
+//            children: <Widget>[
+//              SimpleDialogOption(
+//                onPressed: () async {
+//                  String pathToTrack = await FilePicker.getFilePath(type: FileType.ANY);
+//                },
+//                child: const Text('Choose'),
+//              ),
+//              SimpleDialogOption(
+//                onPressed: () { Navigator.pop(context); },
+//                child: const Text('Exit'),
+//              ),
+//            ],
+//          );
+//        }
+//    )) {
+//
+//    }
+//  }
 
 
 }
