@@ -16,5 +16,3 @@ Main page
 - Save location of gpx files in ?
 
 Track page
-
- git access token: 4736f860fa0c9e5afddad8b743ce482cbd97165f
