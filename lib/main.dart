@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -13,7 +14,7 @@ import 'models/track.dart';
 import 'map/map_page.dart';
 import 'track/track_list.dart';
 import 'track/track_service.dart';
-
+import 'fileIO/local_file.dart';
 
 void main() => runApp(MyApp());
 
@@ -50,10 +51,12 @@ class _MainPageState extends State<MainPage> {
   List<Track> _tracks = [];
   Directory _gpxFileDirectory;
   String _gpxFileDirectoryString = "?";
+  Map<String, dynamic> trackSettings;
 
   void initState() {
     super.initState();
     setDirectory();
+    readSettings();
   }
 
 
@@ -80,13 +83,42 @@ class _MainPageState extends State<MainPage> {
 //    );
   }
 
+  void writeSettings() async {
+    //await LocalFile().writeContent("tracksSettings.txt", "Settings new");
+    Map<String, String> settingsMap = { "trackname" : "path to Offline map tiles"};
+    await LocalFile().writeMapToJson("tracksSettings.txt", settingsMap);
+    readSettings();
+  }
+
+
+
+  void readSettings() async {
+    print("Read track settings from local file");
+    trackSettings = await LocalFile().readJson("tracksSettings.txt");
+    print (trackSettings.length);
+
+//    print(settings);
+//    print(settings['trackname']);
+//
+//    // test add to file
+//    await LocalFile().addToJson("tracksSettings.txt", "next track", "paht of next");
+//    settings = await LocalFile().readJson("tracksSettings.txt");
+//
+//    print(settings);
+//    if (settings.containsKey("next track")) {
+//      print (settings["next track"]);
+//    }
+  }
+
+
+
   void findTracks() {
     List<String> trackPath = [];
     Directory(_gpxFileDirectoryString).list(recursive: true, followLinks: false)
         .listen((FileSystemEntity entity) {
           if (path.extension(entity.path) == ".gpx") {
             trackPath.add(entity.path);
-          };
+          }
 
         })
         .onDone( () => {
@@ -126,7 +158,12 @@ class _MainPageState extends State<MainPage> {
 
     for (var path in filePaths) {
       Track oneTrack = await Utils().getTrackMetaData(path);
+      if (trackSettings.containsKey(oneTrack.name)) {
+        oneTrack.offlineMapPath = trackSettings[oneTrack.name];
+      }
       _tracks.add(oneTrack);
+
+
     }
     // load each gpx file as Track
 //    Track oneTrack = await Utils().getTrackMetaData(filePaths[0]);
@@ -139,6 +176,7 @@ class _MainPageState extends State<MainPage> {
     // list of tracks
 
   }
+
 
   /// Go to page with HowTo's or open modal or bottomsheet?
   ///
@@ -210,13 +248,15 @@ class _MainPageState extends State<MainPage> {
             _tracks[index].name,
             style: Theme.of(context).textTheme.headline,
           ),
-          subtitle: Text(_tracks[index].location),
-//          subtitle: ListView(
-//            scrollDirection: Axis.horizontal,
-//            children: <Widget>[
-//              Text(_tracks[index].location),
-//            ],
-//          ),
+          //subtitle: Text(_tracks[index].location),
+          subtitle: Row(
+            //scrollDirection: Axis.horizontal,
+
+            children: <Widget>[
+              Text(_tracks[index].location),
+              _offlineIcon(index),
+            ],
+          ),
           trailing: Icon(
             Icons.keyboard_arrow_right, size: 30.0,
           ),
@@ -227,6 +267,16 @@ class _MainPageState extends State<MainPage> {
 
     );
   }
+
+
+  Widget _offlineIcon(int index) {
+    if (_tracks[index].offlineMapPath != null) {
+      return Icon(Icons.map);
+    } else {
+      return Container();
+    }
+  }
+
 
   _handleTap(index) {
     print("handleTap()");

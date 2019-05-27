@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -93,8 +94,14 @@ class DirectoryListState extends State<DirectoryList> {
                 return ListTile(
                   onTap: () {
                     print(snapshot[index]);
-                    widget.callback("${externalStorageDir.path}/${snapshot[index]}");
-                    Navigator.pop(context);
+                    inspectDirectory("${externalStorageDir.path}/${snapshot[index]}");
+//                    if ( inspectDirectory("${externalStorageDir.path}/${snapshot[index]}") == true) {
+//                      widget.callback("${externalStorageDir.path}/${snapshot[index]}");
+//                      Navigator.pop(context);
+//                    }
+//                    print("over");
+                    //widget.callback("${externalStorageDir.path}/${snapshot[index]}");
+                    //Navigator.pop(context);
                   },
                   contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 1),
                   title: Text(snapshot[index]),
@@ -132,6 +139,47 @@ class DirectoryListState extends State<DirectoryList> {
    // );
 
 
+
+  }
+
+  /// Does directory contains directorys between 1 and 18 (zoom levels)
+  ///
+  bool inspectDirectory(String directoryPath) {
+    List<String> filesList = [];
+
+    Directory(directoryPath).list(recursive: false, followLinks: false)
+    .listen((FileSystemEntity entity) {
+      filesList.add(entity.path.split('/').last);
+    })
+    .onDone(() {
+      print(filesList.length);
+      // directories 1..18?
+      int minDir = -1;
+      int maxDir = -1;
+      for (var i = 0; i < 19; i++) {
+        if ( filesList.contains(i.toString()) ) {
+          print("Directory contains directory $i");
+          if (i == 0) { minDir = 0; }
+          maxDir = max(maxDir, i);
+          if (minDir == -1) {
+            minDir = i;
+          } else {
+            minDir = min(minDir, i);
+          }
+        }
+      }
+
+      if (minDir <= maxDir && minDir > -1) {
+        print("Directory contains directorys between $minDir & $maxDir");
+
+        widget.callback(directoryPath);
+        Navigator.pop(context);
+
+        return true;
+      } else {
+        return false;
+      }
+    });
 
   }
 }

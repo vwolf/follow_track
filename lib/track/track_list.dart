@@ -46,9 +46,22 @@ class TrackListState extends State<TrackList> {
           subtitle: ListView(
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              Text(widget.tracks[index].location),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  //Text(widget.tracks[index].location),
+                  Icon(Icons.map),
+                ],
+              )
             ],
           ),
+//          subtitle: ListView(
+//            scrollDirection: Axis.horizontal,
+//            children: <Widget>[
+//              Text(widget.tracks[index].location),
+//              Text("offline"),
+//            ],
+//          ),
           trailing: Icon(Icons.keyboard_arrow_right, size: 30.0,
           ),
         );

@@ -10,8 +10,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import '../fileIO/directory_list.dart';
 import '../track/track_service.dart';
 import 'map_statusLayer.dart';
+import '../fileIO/local_file.dart';
+
+typedef MapPathCallback = void Function(String mapPath);
 
 /// Provide a map view using flutter_map package
 ///
@@ -35,13 +39,16 @@ class MapTrackState extends State<MapTrack> {
 
   // MapController and plugin layer
   MapController _mapController;
-  MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false);
+  MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...");
 
   LatLng get startPos => widget.trackService.getTrackStart();
 
   // status values
   bool _offline = false;
   bool _location = false;
+
+  /// callback function used as a closure
+  MapPathCallback setMapPath;
 
   void setOffline(bool value) {
     _offline = value;
@@ -51,6 +58,8 @@ class MapTrackState extends State<MapTrack> {
   void initState() {
     super.initState();
     streamInit();
+    setMapPath = getMapPath;
+    _mapStatusLayer.status = "Position Off / Online Map";
   }
 
   @override
@@ -66,7 +75,7 @@ class MapTrackState extends State<MapTrack> {
   }
 
   streamEvent(TrackPageStreamMsg event) {
-    print("StreamEvent $event");
+    print("MapTrack StreamEvent ${event.type} : ${event.msg}");
     switch(event.type) {
       case "mapStatusLayerAction" :
 
@@ -78,30 +87,37 @@ class MapTrackState extends State<MapTrack> {
             });
             break;
           case "offline_on" :
-            if(trackService.pathToOfflineMap == null) {
+            if (trackService.track.offlineMapPath == null) {
+              // user must set path to offline map tiles
+              openFileIO();
+            } else {
+              trackService.pathToOfflineMap = trackService.track.offlineMapPath;
+              setState(() {
+                _offline = !_offline;
+                _mapStatusLayer.statusNotification(event.msg, _offline);
+               // _mapStatusLayer.statusNotification(event, value)
+                trackService.getTrackBoundingCoors();
 
+              });
             }
-            setState(() {
-              _offline = !_offline;
-              _mapStatusLayer.statusNotification(event.msg, _offline);
-            });
+
             break;
         }
         break;
 
-      case "callback" :
-        String status = "";
-        _location == true ? status += "Position On" : status += "Position Off";
-        status += " / ";
-        _offline == true ? status += "Offline Modus" : status += "Online Modus";
-
-        event.msg(status);
-        break;
-
-      case "offline" :
-        _offline = event.msg;
-
-        break;
+//      case "callback" :
+//        String status = "";
+//        _location == true ? status += "Position On" : status += "Position Off";
+//        status += " / ";
+//        _offline == true ? status += "Offline Modus" : status += "Online Modus";
+//
+//        event.msg(status);
+//        break;
+//
+//      case "offline" :
+//        _offline = event.msg;
+//
+//        break;
     }
   }
 
@@ -120,6 +136,35 @@ class MapTrackState extends State<MapTrack> {
   }
 
 
+  /// Open a kind of directory browser to select the director which contains the map tiles
+  ///
+  /// ToDo Open in a new page?
+  openFileIO() {
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return DirectoryList(setMapPath);
+        })
+    );
+  }
+
+
+  /// Callback offline map directory selection
+  /// There was already a basic check if valid directory
+  ///
+  void getMapPath(String mapPath) {
+    print("mapPath: $mapPath");
+    setState(() {
+      trackService.pathToOfflineMap = mapPath;
+      _offline = !_offline;
+      _mapStatusLayer.statusNotification("offline_on", _offline);
+
+    });
+
+    // add the path to offline map tiles to settings file
+    LocalFile().addToJson("tracksSettings.txt", trackService.track.name, mapPath);
+    // update track
+    trackService.track.offlineMapPath = mapPath;
+  }
 
 
   @override

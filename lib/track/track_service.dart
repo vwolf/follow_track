@@ -8,6 +8,8 @@ import '../models/track.dart';
 import '../models/track_coord.dart';
 import '../gpx/gpx_parser.dart';
 import '../gpx/read_file.dart';
+import '../fileIO/local_file.dart';
+
 
 /// Service used by [Map]
 class TrackService {
@@ -69,6 +71,35 @@ class TrackService {
 
   /// Return length of track
   getTrackDistance() {}
+
+
+  /// Get the boundaries of track
+  /// 1. Try gpx file ToDo
+  /// 2. Calculate using parsed gpx file
+  getTrackBoundingCoors() {
+    double lat_min = double.infinity;
+    double lat_max = 0.0;
+    double lon_min = double.infinity;
+    double lon_max = 0.0;
+
+    for ( LatLng waypoints in gpxFileData.gpxLatlng) {
+      lat_min = min(lat_min, waypoints.latitude);
+      lat_max = max(lat_max, waypoints.latitude);
+      lon_min = min(lon_min, waypoints.longitude);
+      lon_max = max(lon_max, waypoints.longitude);
+    }
+
+    print("track ${track.name} boundaris are $lat_min, $lat_max, $lon_min, $lon_max");
+
+    /// text latlon to tiles
+    var n = pow(2, 13);
+    var xTile = n * ((lon_min + 180.0) / 360);
+    var lat_min_rad = lat_min / 180 * pi;
+    var yTile = n * (1.0 - (log(tan(lat_min_rad) + (1 / cos(lat_min_rad))) / pi)) / 2;
+    print(xTile.toInt());
+    print(yTile.toInt());
+  }
+
 }
 
 

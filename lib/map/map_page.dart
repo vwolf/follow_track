@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import '../track/track_service.dart';
 import '../map/map_track.dart';
 import '../fileIO/directory_list.dart';
+import '../fileIO/local_file.dart';
 
 typedef MapPath = void Function(String mapPath);
 
@@ -53,19 +54,19 @@ class MapPageState extends State<MapPage> {
 
   onMapEvent(TrackPageStreamMsg trackingPageStreamMsg) {
     print("TrackingPage.onMapEvent ${trackingPageStreamMsg.type}");
-    switch (trackingPageStreamMsg.type) {
-      case "mapStatusLayerAction" :
-        if ( trackingPageStreamMsg.msg == "offline_on") {
-          if (_mapTrack.trackService.pathToOfflineMap == null ) {
-            _offlineMapDialog = true;
-            openFileIO();
-          } else {
-
-          }
-        };
-        break;
-    };
-
+//    switch (trackingPageStreamMsg.type) {
+//      case "mapStatusLayerAction" :
+//        if ( trackingPageStreamMsg.msg == "offline_on__") {
+//          if (_mapTrack.trackService.pathToOfflineMap == null ) {
+//            _offlineMapDialog = true;
+//            openFileIO();
+//          } else {
+//
+//          }
+//        };
+//        break;
+//    };
+//
   }
 
 
@@ -101,6 +102,9 @@ class MapPageState extends State<MapPage> {
     _mapPath = mapPath;
     _mapTrack.trackService.pathToOfflineMap = _mapPath;
     _streamController.add(TrackPageStreamMsg("offline", true));
+
+    // add the path to offline map tiles to settings file
+    LocalFile().addToJson("tracksSettings.txt", _mapTrack.trackService.track.name, _mapPath);
   }
 
 

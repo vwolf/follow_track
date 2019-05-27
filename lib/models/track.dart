@@ -12,6 +12,7 @@ class Track {
   String location;
   String tourImage;
   String gpxFilePath;
+  String offlineMapPath;
 //  String options;
   String coords;
 //  String track;
@@ -27,6 +28,7 @@ class Track {
     this.location,
     this.tourImage,
     this.gpxFilePath,
+    this.offlineMapPath,
 //    this.options,
     this.coords,
 //    this.track,

@@ -22,8 +22,9 @@ class MapStatusLayerOptions extends LayerOptions {
 class MapStatusLayer implements MapPlugin {
   bool locationOn = false;
   bool offline = false;
+  String status = "";
 
-  MapStatusLayer(bool this.locationOn, bool this.offline);
+  MapStatusLayer(bool this.locationOn, bool this.offline, String this.status);
 
 
   @override
@@ -33,7 +34,8 @@ class MapStatusLayer implements MapPlugin {
       return MapStatus(
           streamCtrl: options.streamController,
           locationOn: locationOn,
-          offline: offline);
+          offline: offline,
+          status: status,);
     }
   }
 
@@ -43,7 +45,7 @@ class MapStatusLayer implements MapPlugin {
   }
 
   statusNotification(String event, bool value) {
-    print("MapStatusLayer statusNotification ");
+    print("MapStatusLayer statusNotification $event : $value");
 
     switch(event) {
       case "location_on":
@@ -54,7 +56,16 @@ class MapStatusLayer implements MapPlugin {
         break;
     }
 
+    updateStatusText();
   }
+
+  updateStatusText() {
+    status = "";
+    locationOn == true ? status += "Position On" : status += "Position Off";
+    status += " / ";
+    offline == true ? status +=  "Offline Map" : status += "Online Map";
+  }
+
 }
 
 
@@ -62,8 +73,9 @@ class MapStatus extends StatefulWidget {
   final streamCtrl;
   final locationOn;
   final offline;
+  final status;
 
-  MapStatus({this.streamCtrl, this.locationOn, this.offline});
+  MapStatus({this.streamCtrl, this.locationOn, this.offline, this.status});
 
   @override
   MapStatusState createState() => MapStatusState();
@@ -99,7 +111,8 @@ class MapStatusState extends State<MapStatus> {
             child: Padding(
               padding: EdgeInsets.only(left: 4.0),
               child: Text(
-                statusText,
+                //statusText,
+                widget.status,
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
               ),
@@ -133,14 +146,16 @@ class MapStatusState extends State<MapStatus> {
   iconAction(String action) {
     widget.streamCtrl.add(TrackPageStreamMsg("mapStatusLayerAction", action));
 
-    setStatusText = updateStatusText;
-    widget.streamCtrl.add(TrackPageStreamMsg("callback", setStatusText));
+//    setStatusText = updateStatusText;
+//    widget.streamCtrl.add(TrackPageStreamMsg("callback", setStatusText));
   }
 
 
   updateStatusText(String newText) {
     print("change the text");
-    statusText = newText;
+    //widget.status = newText
+;    statusText = newText;
     //callback(newText);
   }
 }
+
