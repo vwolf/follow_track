@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 //import 'package:permission_handler/permission_handler.dart'
 
+/// Write to and read from local files
+///
 class LocalFile {
 
   String _fileName;
@@ -54,7 +56,8 @@ class LocalFile {
     openFile.close();
   }
 
-  /// Write a Map<String, String> to file
+
+  /// Write a Map<String, String> as JSON string to file
   ///
   writeMapToJson(String fileName, Map<String, String> content) async{
     _fileName = fileName;
@@ -68,6 +71,7 @@ class LocalFile {
   }
 
   /// Add a key:value to file
+  /// Create file if it not exists
   ///
   addToJson(String fileName, String key, String value) async {
     _fileName = fileName;
@@ -88,6 +92,8 @@ class LocalFile {
     }
   }
 
+  /// Read JSON strin from local file and return as map
+  ///
   Future<Map<String, dynamic>> readJson(String fileName) async {
     _fileName = fileName;
     try {

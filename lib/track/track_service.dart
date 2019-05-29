@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:latlong/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../models/track.dart';
 import '../models/track_coord.dart';
@@ -26,19 +27,31 @@ class TrackService {
   // List of LatLng
   List<LatLng> trackLatLngs = [];
 
+  // track info's
+  double trackLength = 0.0;
+
   /// Read file and parse into TourGpxData.
   ///
   /// Convert GpxCoords to [LatLng].
   /// [path] path to file.
-  void getTrack(String path) async {
+  void getTrack(String path)  {
     // read file
-    final fc = await ReadFile().readFile(path);
-
+    final fc =  ReadFile().readFile(path);
+    fc.then((contents) {
+      gpxFileData = new GpxParser(contents).parseData();
+      print(gpxFileData.gpxCoords.length);
+      // create LatLng points for track
+      gpxFileData.coordsToLatlng();
+      getTrackDistance();
+    });
     // parse file
-    gpxFileData = await new GpxParser(fc).parseData();
-    print(gpxFileData.gpxCoords.length);
-    // create LatLng points for track
-    gpxFileData.coordsToLatlng();
+    //var gpxFileDataRe =  new GpxParser(fc).parseData();
+//    gpxFileData = new GpxParser(fc).parseData();
+//
+//    print(gpxFileData.gpxCoords.length);
+//    // create LatLng points for track
+//    gpxFileData.coordsToLatlng();
+//    getTrackDistance();
   }
 
   /// Return first position of [Track]
@@ -69,8 +82,23 @@ class TrackService {
     return distance;
   }
 
-  /// Return length of track
-  getTrackDistance() {}
+  /// Return length of whole track
+  getTrackDistance() async {
+    double totalDistance = 0;
+    double totalDistanceGeo = 0;
+    for (var i = 0; i < gpxFileData.gpxLatlng.length - 1; i++ ) {
+
+      totalDistance += Distance().distance(gpxFileData.gpxLatlng[i], gpxFileData.gpxLatlng[i + 1]);
+      totalDistanceGeo += await Geolocator().distanceBetween(gpxFileData.gpxLatlng[i].latitude, gpxFileData.gpxLatlng[i].longitude,
+          gpxFileData.gpxLatlng[i + 1].latitude, gpxFileData.gpxLatlng[i + 1].longitude);
+
+
+    }
+
+    print ("totalDistance: $totalDistance");
+    print ("totalDistance in meters: $totalDistanceGeo");
+    trackLength = totalDistanceGeo;
+  }
 
 
   /// Get the boundaries of track

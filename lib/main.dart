@@ -7,10 +7,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 import 'models/track.dart';
-
-//import 'gpx/gpx_tracks_page.dart';
 import 'map/map_page.dart';
 import 'track/track_list.dart';
 import 'track/track_service.dart';
@@ -45,7 +44,10 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
+
 class _MainPageState extends State<MainPage> {
+
+  static const platform = const MethodChannel('devwolf.track.dev/battery');
 
   bool _showHowTo = false;
   List<Track> _tracks = [];
@@ -53,6 +55,7 @@ class _MainPageState extends State<MainPage> {
   String _gpxFileDirectoryString = "?";
   Map<String, dynamic> trackSettings;
 
+  /// Set the directory with gpx files
   void initState() {
     super.initState();
     setDirectory();
@@ -74,15 +77,9 @@ class _MainPageState extends State<MainPage> {
   }
 
 
+  void addTrack() {}
 
-  void addTrack() {
-//    Navigator.of(context).push(
-//      MaterialPageRoute(builder: (context) {
-//        return GpxTracksPage();
-//      })
-//    );
-  }
-
+  /// This is just for testing
   void writeSettings() async {
     //await LocalFile().writeContent("tracksSettings.txt", "Settings new");
     Map<String, String> settingsMap = { "trackname" : "path to Offline map tiles"};
@@ -91,27 +88,17 @@ class _MainPageState extends State<MainPage> {
   }
 
 
-
+  /// Read settings from local file into [trackSettings].
+  ///
   void readSettings() async {
     print("Read track settings from local file");
     trackSettings = await LocalFile().readJson("tracksSettings.txt");
-    print (trackSettings.length);
-
-//    print(settings);
-//    print(settings['trackname']);
-//
-//    // test add to file
-//    await LocalFile().addToJson("tracksSettings.txt", "next track", "paht of next");
-//    settings = await LocalFile().readJson("tracksSettings.txt");
-//
-//    print(settings);
-//    if (settings.containsKey("next track")) {
-//      print (settings["next track"]);
-//    }
   }
 
 
-
+  /// Add all gpx files in [_gpxFileDirectoryString] to [trackPath].
+  /// Then call [loadTrackMetaData] to read gpx files.
+  ///
   void findTracks() {
     List<String> trackPath = [];
     Directory(_gpxFileDirectoryString).list(recursive: true, followLinks: false)
@@ -162,19 +149,8 @@ class _MainPageState extends State<MainPage> {
         oneTrack.offlineMapPath = trackSettings[oneTrack.name];
       }
       _tracks.add(oneTrack);
-
-
     }
-    // load each gpx file as Track
-//    Track oneTrack = await Utils().getTrackMetaData(filePaths[0]);
-//    print(oneTrack);
-//
-//    _tracks.add(oneTrack);
-    setState(() {
-
-    });
-    // list of tracks
-
+    setState(() {});
   }
 
 
@@ -183,7 +159,6 @@ class _MainPageState extends State<MainPage> {
   void showHowTo() {
     if (!_showHowTo) {
       _showHowTo = true;
-
     }
   }
 
@@ -225,7 +200,11 @@ class _MainPageState extends State<MainPage> {
         FloatingActionButton.extended(
             onPressed: addTrack,
             icon: Icon(Icons.add),
-            label: Text("Add Track"))
+            label: Text("Add Track")),
+        FloatingActionButton.extended(
+            onPressed: _getBatteryLevel,
+            label: Text("Battery Level"),
+        )
       ],
 
 
@@ -309,4 +288,26 @@ class _MainPageState extends State<MainPage> {
       ],
     );
   }
+
+  ///
+  String _batteryLevel = "Unknown battery level";
+
+  Future<void> _getBatteryLevel() async {
+    String batteryLevel;
+    try {
+      final int result = await platform.invokeMethod('getBatteryLevel');
+      batteryLevel = 'Battery level at $result %.';
+
+    } on PlatformException catch (e) {
+      batteryLevel = "Failed to get battery level: ${e.message}";
+    }
+
+    setState(() {
+      _batteryLevel = batteryLevel;
+    });
+
+    print(batteryLevel);
+  }
+
+
 }

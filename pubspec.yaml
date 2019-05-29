@@ -29,7 +29,8 @@ dev_dependencies:
     sdk: flutter
 
   file_picker: ^1.1.1
-  geolocator: ^3.0.1
+  geolocator: ^5.0.0
+  permission_handler: ^3.1.0
   flutter_map: ^0.5.0
   xml: ^3.2.3
 

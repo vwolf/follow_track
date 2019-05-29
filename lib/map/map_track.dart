@@ -139,7 +139,7 @@ class MapTrackState extends State<MapTrack> {
   /// Open a kind of directory browser to select the director which contains the map tiles
   ///
   /// ToDo Open in a new page?
-  openFileIO() {
+  openFileIO() async {
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
           return DirectoryList(setMapPath);
@@ -174,7 +174,7 @@ class MapTrackState extends State<MapTrack> {
         mapController: _mapController,
         options: MapOptions(
           center: startPos,
-          zoom: 15,
+          zoom: 13,
           minZoom: 4,
           maxZoom: 18,
           onTap: _handleTap,
@@ -198,10 +198,11 @@ class MapTrackState extends State<MapTrack> {
                 strokeWidth: 4.0,
                 color: Colors.blueAccent,
               )
-            ]
+            ],
+            onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)
           ),
           MarkerLayerOptions(
-
+            markers: markerList,
           ),
           MapStatusLayerOptions(
             streamController: streamController,
@@ -215,6 +216,43 @@ class MapTrackState extends State<MapTrack> {
   }
 
 
+  List<Marker> get markerList => makeMarkerList();
+
+  /// Maker for start and end point of track
+  List<Marker> makeMarkerList() {
+    List<Marker> ml = [];
+    List<LatLng> markerPoints = [];
+
+    if (trackService.gpxFileData.gpxLatlng.length > 0 ) {
+      markerPoints.add(trackService.gpxFileData.gpxLatlng.first);
+      markerPoints.add(trackService.gpxFileData.gpxLatlng.last);
+
+
+      for (var i = 0; i < markerPoints.length; i++) {
+        Marker newMarker = Marker(
+            width: 40.0,
+            height: 40.0,
+            point: markerPoints[i],
+            builder: (ctx) =>
+                Container(
+                  child: GestureDetector(
+                    onTap: () {
+                      _handleTapOnMarker(markerPoints[i], i);
+                    },
+                    child: Icon(
+                      Icons.location_on,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                )
+        );
+        ml.add(newMarker);
+      }
+    }
+
+    return ml;
+  }
+
   void _handleTap(LatLng latlng) {
     print("_handleTap at $latlng");
   }
@@ -223,4 +261,13 @@ class MapTrackState extends State<MapTrack> {
     print("_handleLongPress at $latlng");
   }
 
+  void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) {
+
+  }
+
+  // Tap on marker on maps.
+  /// Use coords to get in marker list (_tourGpxData.trackPoints).
+  _handleTapOnMarker(LatLng latlng, int index) {
+    print('Tap on marker at $latlng with index: $index');
+  }
 }

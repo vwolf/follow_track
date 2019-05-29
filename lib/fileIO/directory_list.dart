@@ -61,15 +61,22 @@ class DirectoryListState extends State<DirectoryList> {
     );
   }
 
+  /// Make list with directorys for [FutureBuilder]
+  ///
   Future<List<String>>_inFutureList() async{
     var filesList = new List<String>();
     if (externalStorageDir == null) {
       externalStorageDir = await getExternalStorageDirectory();
-      externalStorageDir.list(recursive: false, followLinks: false)
-          .listen((FileSystemEntity entity) {
-        print(entity.path);
-        filesList.add(entity.path.split('/').last);
-      });
+      List<FileSystemEntity>dirList = externalStorageDir.listSync(recursive: false, followLinks: false);
+      for (var i = 0; i < dirList.length; i++) {
+        filesList.add(dirList[i].path.split('/').last);
+      }
+//      externalStorageDir.list(recursive: false, followLinks: false)
+//          .listen((FileSystemEntity entity) {
+//            print(entity.path);
+//            filesList.add(entity.path.split('/').last);
+//          });
+
     } else {
       externalStorageDir.list(recursive: false, followLinks: false)
           .listen((FileSystemEntity entity) {

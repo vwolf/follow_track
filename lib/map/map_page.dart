@@ -54,8 +54,12 @@ class MapPageState extends State<MapPage> {
 
   onMapEvent(TrackPageStreamMsg trackingPageStreamMsg) {
     print("TrackingPage.onMapEvent ${trackingPageStreamMsg.type}");
-//    switch (trackingPageStreamMsg.type) {
-//      case "mapStatusLayerAction" :
+    switch (trackingPageStreamMsg.type) {
+     case "mapStatusLayerAction" :
+       if(trackingPageStreamMsg.msg == "info_on") {
+          print("toggle track info");
+       }
+       break;
 //        if ( trackingPageStreamMsg.msg == "offline_on__") {
 //          if (_mapTrack.trackService.pathToOfflineMap == null ) {
 //            _offlineMapDialog = true;
@@ -65,8 +69,8 @@ class MapPageState extends State<MapPage> {
 //          }
 //        };
 //        break;
-//    };
-//
+    }
+
   }
 
 
