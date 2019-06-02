@@ -89,7 +89,7 @@ class _MainPageState extends State<MainPage> {
       throw UnsupportedError("getApplicationSupportDirectory requries iOS");
 
     //final String path = await _channel.invokeMethod<String>('getApplicationSupportDirectory');
-    final Directory result = await getApplicationSupportDirectory();
+    final Directory result = await getApplicationDocumentsDirectory();
     if (result == null) {
       return null;
     } else {
