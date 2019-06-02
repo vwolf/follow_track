@@ -1,0 +1,5 @@
+version: "Apple Swift version 3.0.2 (swiftlang-800.0.63 clang-800.0.42.1)"
+options: "d5c6fd62a34fb38c1d906fbfe77bb913"
+build_time: [612455821, 773738000]
+inputs:
+  "/Users/Wolf/AndroidStudioProjects/follow_track/ios/Runner/AppDelegate.swift": [612446842, 0]
