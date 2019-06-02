@@ -47,6 +47,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
 
+  //static const MethodChannel _channel = const MethodChannel('devwolf.track.dev/path_provider');
   static const platform = const MethodChannel('devwolf.track.dev/battery');
 
   bool _showHowTo = false;
@@ -58,7 +59,13 @@ class _MainPageState extends State<MainPage> {
   /// Set the directory with gpx files
   void initState() {
     super.initState();
-    setDirectory();
+    if(Platform.isAndroid) {
+      setDirectory();
+    }
+    if (Platform.isIOS) {
+      setApplicationSupportDirectory();
+    }
+
     readSettings();
   }
 
@@ -72,7 +79,24 @@ class _MainPageState extends State<MainPage> {
       Directory(_gpxFileDirectoryString).create(recursive: true);
       findTracks();
     } catch (e) {
-      print("Error $e");
+      print("Error setDirectory $e");
+    }
+  }
+
+
+  void setApplicationSupportDirectory() async{
+    if (!Platform.isIOS)
+      throw UnsupportedError("getApplicationSupportDirectory requries iOS");
+
+    //final String path = await _channel.invokeMethod<String>('getApplicationSupportDirectory');
+    final Directory result = await getApplicationSupportDirectory();
+    if (result == null) {
+      return null;
+    } else {
+      print("setApplicationSupportDirectory ${result.path}");
+      setState(() {
+        _gpxFileDirectoryString = "${result.path}/Tracks";
+      });
     }
   }
 

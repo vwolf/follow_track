@@ -199,7 +199,7 @@ class MapTrackState extends State<MapTrack> {
                 color: Colors.blueAccent,
               )
             ],
-            onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)
+            //onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)
           ),
           MarkerLayerOptions(
             markers: markerList,
