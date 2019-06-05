@@ -45,6 +45,7 @@ class TrackService {
     // read file
     final fc =  ReadFile().readFile(path);
     fc.then((contents) {
+      print("read setting: $fc ");
       gpxFileData = new GpxParser(contents).parseData();
       print(gpxFileData.gpxCoords.length);
       // create LatLng points for track

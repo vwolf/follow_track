@@ -12,7 +12,9 @@ class LocalFile {
   String _fileName;
 
   Future<String> get _localPath async {
+    print("local_file _localPath");
     final directory = await getApplicationDocumentsDirectory();
+    print("local_file directory: $directory");
     return directory.path;
   }
 
@@ -34,8 +36,10 @@ class LocalFile {
   /// Read file and return  as string
   Future<String> readContent(String fileName) async {
     _fileName = fileName;
+    print("readContent from file $fileName");
     try {
       final file = await _localFile;
+      print("file path: $file");
       if (file.existsSync()) {
         String contents = await file.readAsString();
         return contents;
@@ -95,9 +99,11 @@ class LocalFile {
   /// Read JSON strin from local file and return as map
   ///
   Future<Map<String, dynamic>> readJson(String fileName) async {
+    print("Local_file.readJson $fileName");
     _fileName = fileName;
     try {
       final file =  await _localFile;
+      print("local file to read: $fileName");
       if (file.existsSync()) {
         var fileContent = file.readAsStringSync();
         Map<String, dynamic> contentAsMap = jsonDecode(fileContent);

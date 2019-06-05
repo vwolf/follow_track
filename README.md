@@ -22,3 +22,26 @@ GPX Parser
 FileIO
 
 Models
+
+iOS Build
+Error Package directories not found: add profile.xcconfig
+File: ios/Flutter/Release.xcconfig
+#include "Pods/Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"
+
+Delete Pod folder before Pod install
+
+
+https://www.freecodecamp.org/news/flutter-platform-channels-with-protobuf-e895e533dfb7/
+
+#######################################################
+Get application's data container by running
+xcrun simctl get_app_container <device> <bundle>
+
+xcrun simctl get_app_container 29467DAB-79B6-4B8D-B8BA-5866C0D0AC0D com.devwolf.followTrack
+
+Get device id by running xcrun simctl list
+
+#######################################################
+
+Updata path_provider to 1.1.1
+- flutter_maps: path_provider 0.5.0+1
