@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-
+import 'dart:io';
 import 'package:latlong/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:path/path.dart' as path;
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/track.dart';
 import '../models/track_coord.dart';
+import '../models/waypoint.dart';
 import '../gpx/gpx_parser.dart';
+import '../gpx/gpxx_parser.dart';
 import '../gpx/read_file.dart';
 import '../fileIO/local_file.dart';
 
@@ -30,11 +35,13 @@ class TrackService {
   // track info's
   double trackLength = 0.0;
 
+  LatLng currentPosition;
+
   /// Read file and parse into TourGpxData.
   ///
   /// Convert GpxCoords to [LatLng].
   /// [path] path to file.
-  void getTrack(String path)  {
+  void getTrack(String path, String tracksDirectoryPath)  {
     // read file
     final fc =  ReadFile().readFile(path);
     fc.then((contents) {
@@ -42,7 +49,8 @@ class TrackService {
       print(gpxFileData.gpxCoords.length);
       // create LatLng points for track
       gpxFileData.coordsToLatlng();
-      getTrackDistance();
+      //getTrackDistance();
+      getTrackWayPoints(tracksDirectoryPath);
     });
     // parse file
     //var gpxFileDataRe =  new GpxParser(fc).parseData();
@@ -128,6 +136,43 @@ class TrackService {
     print(yTile.toInt());
   }
 
+  /// Read data with way point data
+  /// Waypoint data in directory with track name
+  getTrackWayPoints(String wptpath) {
+    // path to directory
+    String wayPointDirectory = "$wptpath/${gpxFileData.trackName}";
+    // does the directory exist?
+
+
+      List<String> wayPointsFiles = [];
+      Directory(wayPointDirectory).list(recursive: false, followLinks: false)
+          .listen((FileSystemEntity entity) {
+        if (path.extension(entity.path) == ".gpx") {
+          wayPointsFiles.add(entity.path);
+        }
+      })
+          .onDone(() => {
+        this.parseWpts(wayPointsFiles)
+      });
+
+
+  }
+
+  parseWpts(List<String> wayPointsFiles) {
+
+    if (wayPointsFiles.length > 0) {
+      for (var i = 0; i < wayPointsFiles.length; i++) {
+        final fc = ReadFile().readFile(wayPointsFiles[i]);
+        fc.then((contents) {
+          List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
+          print(newWaypoints.length);
+          gpxFileData.addWaypoint(newWaypoints);
+        });
+      }
+
+    }
+    //gpxFileData.trackName
+  }
 }
 
 

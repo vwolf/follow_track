@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
 
 /// Read file from local storage
@@ -39,4 +39,26 @@ class ReadFile {
 
     return null;
   }
+
+  List<String>getWayPointsFiles(String dirPath) {
+    List<String> wayPointsFiles = [];
+    Directory(dirPath).list(recursive: false, followLinks: false)
+        .listen((FileSystemEntity entity) {
+          if (path.extension(entity.path) == ".gpx") {
+            wayPointsFiles.add(entity.path);
+          }
+    })
+    .onDone(() => {
+      this.readWayPoints(wayPointsFiles)
+
+      //return wayPointsFiles;
+    });
+    //return wayPointsFiles;
+  }
+
+  readWayPoints(List<String> pathList) {
+    return pathList;
+  }
+
+
 }

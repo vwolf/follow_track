@@ -59,11 +59,13 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     setDirectory();
-    readSettings();
+   // readSettings();
+    writeSettings();
   }
 
 
   void setDirectory() async {
+    await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
     try {
       var dir = await getExternalStorageDirectory();
       setState(() {
@@ -141,14 +143,20 @@ class _MainPageState extends State<MainPage> {
   /// Load meta data from tracks in [_gpxFileDirectory] into [Track]
   ///
   /// [filePaths] list of gpx files in track directory
+  /// Filter track files from waypoint files
   void loadTrackMetaData(List<String> filePaths) async {
 
     for (var path in filePaths) {
       Track oneTrack = await Utils().getTrackMetaData(path);
-      if (trackSettings.containsKey(oneTrack.name)) {
-        oneTrack.offlineMapPath = trackSettings[oneTrack.name];
+      if (oneTrack.name != "") {
+        _tracks.add(oneTrack);
+        // any settings for track?
+        if (trackSettings.containsKey(oneTrack.name)) {
+          oneTrack.offlineMapPath = trackSettings[oneTrack.name];
+        }
       }
-      _tracks.add(oneTrack);
+
+     // _tracks.add(oneTrack);
     }
     setState(() {});
   }
@@ -198,10 +206,12 @@ class _MainPageState extends State<MainPage> {
       ),
       persistentFooterButtons: <Widget>[
         FloatingActionButton.extended(
+          heroTag: "addTrack",
             onPressed: addTrack,
             icon: Icon(Icons.add),
             label: Text("Add Track")),
         FloatingActionButton.extended(
+          heroTag: "batterylevel",
             onPressed: _getBatteryLevel,
             label: Text("Battery Level"),
         )
@@ -260,7 +270,7 @@ class _MainPageState extends State<MainPage> {
   _handleTap(index) {
     print("handleTap()");
     TrackService trackService = TrackService(_tracks[index]);
-    trackService.getTrack(_tracks[index].gpxFilePath);
+    trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
 
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {

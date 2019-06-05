@@ -6,14 +6,18 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
+import 'package:geolocator/geolocator.dart';
+//import 'package:permission_handler/permission_handler.dart';
+//import 'package:path/path.dart' as path;
+//import 'package:path_provider/path_provider.dart';
 
 import '../fileIO/directory_list.dart';
 import '../track/track_service.dart';
 import 'map_statusLayer.dart';
 import '../fileIO/local_file.dart';
+
+import '../track/geoLocationService.dart';
+import '../models/waypoint.dart';
 
 typedef MapPathCallback = void Function(String mapPath);
 
@@ -29,16 +33,20 @@ class MapTrack extends StatefulWidget {
   MapTrackState createState() => MapTrackState(trackService, streamController);
 }
 
-
+/// State for MapTrack page
+///
+///
 class MapTrackState extends State<MapTrack> {
 
   TrackService trackService;
   StreamController streamController;
 
+  StreamController geoLocationStreamController;
+
   MapTrackState(this.trackService, this.streamController);
 
   // MapController and plugin layer
-  MapController _mapController;
+  MapController _mapController = MapController();
   MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...");
 
   LatLng get startPos => widget.trackService.getTrackStart();
@@ -46,6 +54,8 @@ class MapTrackState extends State<MapTrack> {
   // status values
   bool _offline = false;
   bool _location = false;
+
+  LatLng _currentPosition;
 
   /// callback function used as a closure
   MapPathCallback setMapPath;
@@ -65,8 +75,12 @@ class MapTrackState extends State<MapTrack> {
   @override
   void dispose() {
     streamController.close();
+    if (geoLocationStreamController != null) {
+      geoLocationStreamController.close();
+    }
     super.dispose();
   }
+
 
   streamInit() {
     streamController.stream.listen((event) {
@@ -84,6 +98,7 @@ class MapTrackState extends State<MapTrack> {
             setState(() {
               _location = !_location;
               _mapStatusLayer.statusNotification(event.msg, _location);
+              switchGeoLocation();
             });
             break;
           case "offline_on" :
@@ -167,6 +182,37 @@ class MapTrackState extends State<MapTrack> {
   }
 
 
+  /// Subscribe / Unsubscribe to geoLocationStream in Geolocation
+  /// Set to current state of _location
+  ///
+  switchGeoLocation() {
+    if (_location) {
+      geoLocationStreamController = StreamController();
+      geoLocationStreamController.stream.listen((coords) {
+        onGeoLocationEvent(coords);
+      });
+      GeoLocationService.gls.subscribeToPositionStream(geoLocationStreamController);
+    } else {
+      GeoLocationService.gls.unsubcribeToPositionStream();
+
+    }
+  }
+
+  /// Current geo location from [GeoLocationService] as [Position].
+  /// Update [gpsPositionList] and center map on [currentPosition].
+  ///
+  onGeoLocationEvent(Position coords) {
+    if (_location) {
+      _currentPosition = LatLng(coords.latitude, coords.longitude);
+      setState(() {
+        gpsPositionList;
+        _mapController.move(_currentPosition, _mapController.zoom);
+        trackService.currentPosition = _currentPosition;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Flexible(
@@ -203,6 +249,12 @@ class MapTrackState extends State<MapTrack> {
           ),
           MarkerLayerOptions(
             markers: markerList,
+          ),
+          MarkerLayerOptions(
+            markers: gpsPositionList,
+          ),
+          MarkerLayerOptions(
+            markers: wayPointsList,
           ),
           MapStatusLayerOptions(
             streamController: streamController,
@@ -253,6 +305,57 @@ class MapTrackState extends State<MapTrack> {
     return ml;
   }
 
+  /// Return current positon a marker
+  ///
+  List<Marker> get gpsPositionList => makeGpsPositionList();
+
+  List<Marker> makeGpsPositionList() {
+    List<Marker> ml = [];
+
+    if (_location == true && _currentPosition != null) {
+      Marker newMarker = Marker(
+        width: 40.0,
+        height: 40.0,
+        point: _currentPosition,
+        builder: (ctx) =>
+            Container(
+              child: Icon(
+                Icons.location_on,
+                color: Colors.orangeAccent,
+              ),
+            )
+
+      );
+      ml.add(newMarker);
+    }
+    return ml;
+  }
+
+  List<Marker> get wayPointsList => makeWayPointsList();
+
+  List<Marker> makeWayPointsList() {
+    List<Marker> ml = [];
+    if(trackService.gpxFileData.wayPoints.length > 0) {
+      for (var i = 0; i < trackService.gpxFileData.wayPoints.length; i++) {
+        Waypoint waypoint = trackService.gpxFileData.wayPoints[i];
+
+        Marker newMarker = Marker(
+          width: 80.0,
+          height: 80.0,
+          point: waypoint.location,
+          builder: (ctx) =>
+              Container(
+                child: Icon(
+                  Icons.home,
+                  color: Colors.deepOrangeAccent,
+                ),
+              )
+        );
+        ml.add(newMarker);
+      }
+    }
+    return ml;
+  }
   void _handleTap(LatLng latlng) {
     print("_handleTap at $latlng");
   }
@@ -262,7 +365,7 @@ class MapTrackState extends State<MapTrack> {
   }
 
   void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) {
-
+    print("_onTap $msg + Polyline $polyline + LatLng $latlng + ploylintPoint $polylinePoint");
   }
 
   // Tap on marker on maps.
@@ -270,4 +373,13 @@ class MapTrackState extends State<MapTrack> {
   _handleTapOnMarker(LatLng latlng, int index) {
     print('Tap on marker at $latlng with index: $index');
   }
+
+
+  /// get distance current position to start or end point of track
+  double getDistanceTo() {
+
+    //GeoLocationService.gls.getDistanceBetweenCoords(coord1, coord2)
+    return 0.0;
+  }
+
 }

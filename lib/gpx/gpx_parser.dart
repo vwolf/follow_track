@@ -1,6 +1,8 @@
 import 'package:xml/xml.dart' as xml;
 import 'package:latlong/latlong.dart';
 
+import '../models/waypoint.dart';
+
 /// Parser for *.gpx xml files
 ///
 /// xml schemas
@@ -128,6 +130,7 @@ class GpxFileData {
   LatLng defaultCoord = LatLng(53.00, 13.10);
   List<GpxCoords> gpxCoords = [];
   List<LatLng> gpxLatlng = [];
+  List<Waypoint> wayPoints = [];
 
   /// convert GpxCoords to LatLng
   coordsToLatlng() {
@@ -135,6 +138,10 @@ class GpxFileData {
     gpxCoords.forEach((GpxCoords f) {
       gpxLatlng.add(new LatLng(f.lat, f.lon));
     });
+  }
+
+  addWaypoint(List<Waypoint> newWaypoints) {
+    wayPoints.addAll(newWaypoints);
   }
 }
 
