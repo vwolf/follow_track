@@ -108,7 +108,6 @@ class _MainPageState extends State<MainPage> {
           if (path.extension(entity.path) == ".gpx") {
             trackPath.add(entity.path);
           }
-
         })
         .onDone( () => {
           this.loadTrackMetaData(trackPath)
@@ -267,16 +266,33 @@ class _MainPageState extends State<MainPage> {
   }
 
 
-  _handleTap(index) {
+  _handleTap(index) async {
     print("handleTap()");
     TrackService trackService = TrackService(_tracks[index]);
-    trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
-
+    await trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
+    String wayPointsDirectory = "${trackService.pathToTracksDirectory}/${trackService.gpxFileData.trackName}";
+    var waypointFiles = await trackService.getWayPointsFiles(wayPointsDirectory);
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) {
           return MapPage(trackService);
         })
     );
+
+//    .then((result) {
+//        Navigator.of(context).push(
+//          MaterialPageRoute(builder: (context) {
+//            return MapPage(trackService);
+//        })
+//      );
+//    }).whenComplete( () {
+////      Navigator.of(context).push(
+////          MaterialPageRoute(builder: (context) {
+////            return MapPage(trackService);
+////          })
+////      );
+//    });
+
+
   }
 
 

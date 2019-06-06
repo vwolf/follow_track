@@ -331,10 +331,20 @@ class MapTrackState extends State<MapTrack> {
     return ml;
   }
 
+  /// Waypoint marker
   List<Marker> get wayPointsList => makeWayPointsList();
+//  List<Marker> get wayPointsList{
+//    trackService.getTrackWayPoints();
+//    setState(() {
+//
+//    });
+//    return makeWayPointsList();
+//  }
 
-  List<Marker> makeWayPointsList() {
+  List<Marker> makeWayPointsList()  {
     List<Marker> ml = [];
+
+    //trackService.getTrackWayPoints();
     if(trackService.gpxFileData.wayPoints.length > 0) {
       for (var i = 0; i < trackService.gpxFileData.wayPoints.length; i++) {
         Waypoint waypoint = trackService.gpxFileData.wayPoints[i];
@@ -356,6 +366,8 @@ class MapTrackState extends State<MapTrack> {
     }
     return ml;
   }
+
+
   void _handleTap(LatLng latlng) {
     print("_handleTap at $latlng");
   }

@@ -16,16 +16,15 @@ import '../gpx/gpxx_parser.dart';
 import '../gpx/read_file.dart';
 import '../fileIO/local_file.dart';
 
-
 /// Service used by [Map]
 class TrackService {
-
   final Track track;
   TrackService(this.track);
 
   GpxFileData gpxFileData = GpxFileData();
 
   String pathToOfflineMap;
+  String pathToTracksDirectory;
 
   // List of coord's
   List<TrackCoord> trackCoords = [];
@@ -41,26 +40,35 @@ class TrackService {
   ///
   /// Convert GpxCoords to [LatLng].
   /// [path] path to file.
-  void getTrack(String path, String tracksDirectoryPath)  {
-    // read file
-    final fc =  ReadFile().readFile(path);
-    fc.then((contents) {
-      print("read setting: $fc ");
+  Future<void> getTrack(String path, String tracksDirectoryPath) async {
+    pathToTracksDirectory = tracksDirectoryPath;
+    await ReadFile().readFile(path).then((contents) {
+      print("read setting: $contents ");
       gpxFileData = new GpxParser(contents).parseData();
       print(gpxFileData.gpxCoords.length);
       // create LatLng points for track
       gpxFileData.coordsToLatlng();
-      //getTrackDistance();
-      getTrackWayPoints(tracksDirectoryPath);
+      getTrackDistance();
+
+      //getTrackWayPoints();
+    }).whenComplete(() {
+      return true;
     });
-    // parse file
-    //var gpxFileDataRe =  new GpxParser(fc).parseData();
-//    gpxFileData = new GpxParser(fc).parseData();
+
+    // read file
+//    final fc = await  ReadFile().readFile(path);
+//    fc.then((contents) {
+//      print("read setting: $fc ");
+//      gpxFileData = new GpxParser(contents).parseData();
+//      print(gpxFileData.gpxCoords.length);
+//      // create LatLng points for track
+//      gpxFileData.coordsToLatlng();
+//      getTrackDistance();
 //
-//    print(gpxFileData.gpxCoords.length);
-//    // create LatLng points for track
-//    gpxFileData.coordsToLatlng();
-//    getTrackDistance();
+//      getTrackWayPoints();
+//    }).whenComplete(() {
+//      return true;
+//    });
   }
 
   /// Return first position of [Track]
@@ -76,7 +84,7 @@ class TrackService {
   /// Return first position in parsed gpx file
   ///
   LatLng getTrackStart() {
-    if (gpxFileData.gpxLatlng.length > 0 ) {
+    if (gpxFileData.gpxLatlng.length > 0) {
       return gpxFileData.gpxLatlng.first;
     } else {
       print("getTrackStart gpxFileData.gpxLatLng length = 0");
@@ -87,7 +95,6 @@ class TrackService {
   double getDistanceBetweenPoints(LatLng start, LatLng end) {
     double distance = 0.0;
 
-
     return distance;
   }
 
@@ -95,20 +102,20 @@ class TrackService {
   getTrackDistance() async {
     double totalDistance = 0;
     double totalDistanceGeo = 0;
-    for (var i = 0; i < gpxFileData.gpxLatlng.length - 1; i++ ) {
-
-      totalDistance += Distance().distance(gpxFileData.gpxLatlng[i], gpxFileData.gpxLatlng[i + 1]);
-      totalDistanceGeo += await Geolocator().distanceBetween(gpxFileData.gpxLatlng[i].latitude, gpxFileData.gpxLatlng[i].longitude,
-          gpxFileData.gpxLatlng[i + 1].latitude, gpxFileData.gpxLatlng[i + 1].longitude);
-
-
+    for (var i = 0; i < gpxFileData.gpxLatlng.length - 1; i++) {
+      totalDistance += Distance()
+          .distance(gpxFileData.gpxLatlng[i], gpxFileData.gpxLatlng[i + 1]);
+      totalDistanceGeo += await Geolocator().distanceBetween(
+          gpxFileData.gpxLatlng[i].latitude,
+          gpxFileData.gpxLatlng[i].longitude,
+          gpxFileData.gpxLatlng[i + 1].latitude,
+          gpxFileData.gpxLatlng[i + 1].longitude);
     }
 
-    print ("totalDistance: $totalDistance");
-    print ("totalDistance in meters: $totalDistanceGeo");
+    print("totalDistance: $totalDistance");
+    print("totalDistance in meters: $totalDistanceGeo");
     trackLength = totalDistanceGeo;
   }
-
 
   /// Get the boundaries of track
   /// 1. Try gpx file ToDo
@@ -119,63 +126,113 @@ class TrackService {
     double lon_min = double.infinity;
     double lon_max = 0.0;
 
-    for ( LatLng waypoints in gpxFileData.gpxLatlng) {
+    for (LatLng waypoints in gpxFileData.gpxLatlng) {
       lat_min = min(lat_min, waypoints.latitude);
       lat_max = max(lat_max, waypoints.latitude);
       lon_min = min(lon_min, waypoints.longitude);
       lon_max = max(lon_max, waypoints.longitude);
     }
 
-    print("track ${track.name} boundaris are $lat_min, $lat_max, $lon_min, $lon_max");
+    print(
+        "track ${track.name} boundaris are $lat_min, $lat_max, $lon_min, $lon_max");
 
     /// text latlon to tiles
     var n = pow(2, 13);
     var xTile = n * ((lon_min + 180.0) / 360);
     var lat_min_rad = lat_min / 180 * pi;
-    var yTile = n * (1.0 - (log(tan(lat_min_rad) + (1 / cos(lat_min_rad))) / pi)) / 2;
+    var yTile =
+        n * (1.0 - (log(tan(lat_min_rad) + (1 / cos(lat_min_rad))) / pi)) / 2;
     print(xTile.toInt());
     print(yTile.toInt());
   }
 
   /// Read data with way point data
   /// Waypoint data in directory with track name
-  getTrackWayPoints(String wptpath) {
+  /// 1. Get all gpx files
+  /// 2. Send to parser => parseWpts()
+  ///
+  Future<bool> getTrackWayPoints() async {
     // path to directory
-    String wayPointDirectory = "$wptpath/${gpxFileData.trackName}";
+    String wayPointDirectory =
+        "$pathToTracksDirectory/${gpxFileData.trackName}";
     // does the directory exist?
 
+    List<String> wayPointsFiles = [];
 
-      List<String> wayPointsFiles = [];
-      Directory(wayPointDirectory).list(recursive: false, followLinks: false)
-          .listen((FileSystemEntity entity) {
-        if (path.extension(entity.path) == ".gpx") {
-          wayPointsFiles.add(entity.path);
-        }
-      })
-          .onDone(() => {
-        this.parseWpts(wayPointsFiles)
-      });
+    Directory(wayPointDirectory)
+        .list(recursive: false, followLinks: false)
+        .listen((FileSystemEntity entity) {
+      if (path.extension(entity.path) == ".gpx") {
+        wayPointsFiles.add(entity.path);
+      }
+    }).onDone(() => {
+      parseWpts(wayPointsFiles)
+    });
 
-
+    //await parseWpts(wayPointsFiles);
   }
 
-  parseWpts(List<String> wayPointsFiles) {
+  Future<List> getWayPointsFiles(String wayPointDirectory) async {
+    List<String> wayPointsFiles = [];
 
+    var getFiles = Future.value( () {
+      Directory(wayPointDirectory)
+          .list(recursive: false, followLinks: false)
+          .listen((FileSystemEntity entity) {
+        if(path.extension(entity.path) == '.gpx') {
+          wayPointsFiles.add(entity.path);
+        }
+      }).onDone(() => {
+        print ("done")
+      });
+      return wayPointsFiles;
+    });
+
+    var result = await getFiles;
+    print (result);
+    //return wayPointsFiles;
+
+//    Directory(wayPointDirectory)
+//        .list(recursive: false, followLinks: false)
+//        .listen((FileSystemEntity entity) {
+//          if(path.extension(entity.path) == '.gpx') {
+//            wayPointsFiles.add(entity.path);
+//          }
+//        }).onDone(() => {
+//          print ("onDone")
+//    });
+//    return wayPointsFiles;
+  }
+
+//  parseWpts(List<String> wayPointsFiles)  {
+//
+//    if (wayPointsFiles.length > 0) {
+//      for (var i = 0; i < wayPointsFiles.length; i++) {
+//        final fc = ReadFile().readFile(wayPointsFiles[i]);
+//        fc.then((contents) {
+//          List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
+//          print(newWaypoints.length);
+//          gpxFileData.addWaypoint(newWaypoints);
+//        });
+//      }
+//
+//    }
+//    //gpxFileData.trackName
+//  }
+
+  Future parseWpts(List<String> wayPointsFiles) async {
     if (wayPointsFiles.length > 0) {
       for (var i = 0; i < wayPointsFiles.length; i++) {
-        final fc = ReadFile().readFile(wayPointsFiles[i]);
-        fc.then((contents) {
+        await ReadFile().readFile(wayPointsFiles[i]).then((contents) {
           List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
           print(newWaypoints.length);
           gpxFileData.addWaypoint(newWaypoints);
         });
       }
-
     }
     //gpxFileData.trackName
   }
 }
-
 
 /// Stream messages
 class TrackPageStreamMsg {
@@ -185,9 +242,7 @@ class TrackPageStreamMsg {
   TrackPageStreamMsg(this.type, this.msg);
 }
 
-
 class Utils {
-
   /// Read gpx file and return [Track]
   ///
   Future<Track> getTrackMetaData(String gpxFilePath) async {
@@ -196,15 +251,17 @@ class Utils {
 
     Track aTrack = Track();
     aTrack.name = gpxFileData.trackName;
-    aTrack.location = gpxFileData.trackSeqName == null ? "" : gpxFileData.trackSeqName;
+    aTrack.location =
+        gpxFileData.trackSeqName == null ? "" : gpxFileData.trackSeqName;
 
-    aTrack.coords = jsonEncode( {"lat": gpxFileData.defaultCoord.latitude, "lon": gpxFileData.defaultCoord.longitude} );
+    aTrack.coords = jsonEncode({
+      "lat": gpxFileData.defaultCoord.latitude,
+      "lon": gpxFileData.defaultCoord.longitude
+    });
     aTrack.gpxFilePath = gpxFilePath;
 
     return aTrack;
   }
 
-  readMetaData() {
-
-  }
+  readMetaData() {}
 }
