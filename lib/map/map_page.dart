@@ -105,14 +105,18 @@ class MapPageState extends State<MapPage> {
     return Container(
       color: Colors.blueGrey,
       width: double.infinity,
-      padding: EdgeInsets.only(top: 12.0, bottom: 6.0),
+      padding: EdgeInsets.only(top: 0.0, bottom: 2.0),
       constraints: BoxConstraints.loose(Size(double.infinity, 240.0)),
           child: ListView(
+            padding: EdgeInsets.symmetric(vertical: 2.0,  horizontal: 0.0),
+            //padding: EdgeInsets.all(0.0),
             children: <Widget>[
               ListTile(
+                //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
                 title: Text("Track length: ${_mapTrack.trackService.trackLength.truncate()} meter"),
               ),
               ListTile(
+                //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
                 title: Text("Distance to start point: $distanceToStart meter"),   //${getDistanceTo().toString()}
               ),
               ListTile(

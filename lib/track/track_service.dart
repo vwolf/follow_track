@@ -174,22 +174,33 @@ class TrackService {
 
   Future<List> getWayPointsFiles(String wayPointDirectory) async {
     List<String> wayPointsFiles = [];
-
-    var getFiles = Future.value( () {
+    //var getFiles =
+    await Future<List<String>>( () {
       Directory(wayPointDirectory)
           .list(recursive: false, followLinks: false)
           .listen((FileSystemEntity entity) {
-        if(path.extension(entity.path) == '.gpx') {
+        if(path.extension(entity. path) == '.gpx') {
           wayPointsFiles.add(entity.path);
         }
       }).onDone(() => {
-        print ("done")
+        print ("done wayPointsFiles.length ${wayPointsFiles.length}"),
+        parseWpts(wayPointsFiles)
       });
-      return wayPointsFiles;
+      //return wayPointsFiles;
+    }).then((ret) {
+      print("getFiles.ret: $ret");
     });
 
-    var result = await getFiles;
-    print (result);
+    //await getFiles;
+
+//    try {
+//      var result = await getFiles;
+//      print ("result $result");
+//    } catch (e) {
+//      print (e);
+//    } finally {
+//      print ("FINAlLY DONE");
+//    }
     //return wayPointsFiles;
 
 //    Directory(wayPointDirectory)

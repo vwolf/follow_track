@@ -14,6 +14,7 @@ import 'map/map_page.dart';
 import 'track/track_list.dart';
 import 'track/track_service.dart';
 import 'fileIO/local_file.dart';
+import 'fileIO/permissions.dart';
 
 void main() => runApp(MyApp());
 
@@ -58,23 +59,49 @@ class _MainPageState extends State<MainPage> {
   /// Set the directory with gpx files
   void initState() {
     super.initState();
+
     setDirectory();
+    readSettings();
+
    // readSettings();
-    writeSettings();
+    //writeSettings();
+  }
+
+  /// Permission to read/write to Storage
+  ///
+  Future requestPermission() async {
+    var pStatus =  await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
+    if (pStatus == PermissionStatus.denied) {
+      var permissionStatus = await RequestPermissions().requestWritePermissions(PermissionGroup.storage);
+      if(permissionStatus == true) {
+        print("PERMISSION TO ACCESS STORAGE GRANDTED!");
+        print(permissionStatus);
+        return true;
+      } else {
+        print("NO PERMISSION TO ACCESS STORAGE!");
+      }
+    } else {
+      print("PERMISSION TO ACCESS STORAGE GRANDTED!");
+      return true;
+    }
+    return false;
   }
 
 
+
   void setDirectory() async {
-    await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
-    try {
-      var dir = await getExternalStorageDirectory();
-      setState(() {
-        _gpxFileDirectoryString = "${dir.path}/Tracks";
-      });
-      Directory(_gpxFileDirectoryString).create(recursive: true);
-      findTracks();
-    } catch (e) {
-      print("Error $e");
+    var permission = await requestPermission();
+    if (permission) {
+      try {
+        var dir = await getExternalStorageDirectory();
+        setState(() {
+          _gpxFileDirectoryString = "${dir.path}/Tracks";
+        });
+        Directory(_gpxFileDirectoryString).create(recursive: true);
+        findTracks();
+      } catch (e) {
+        print("Error $e");
+      }
     }
   }
 
@@ -95,6 +122,7 @@ class _MainPageState extends State<MainPage> {
   void readSettings() async {
     print("Read track settings from local file");
     trackSettings = await LocalFile().readJson("tracksSettings.txt");
+    print("trackSettings: $trackSettings");
   }
 
 
@@ -270,13 +298,22 @@ class _MainPageState extends State<MainPage> {
     print("handleTap()");
     TrackService trackService = TrackService(_tracks[index]);
     await trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
-    String wayPointsDirectory = "${trackService.pathToTracksDirectory}/${trackService.gpxFileData.trackName}";
-    var waypointFiles = await trackService.getWayPointsFiles(wayPointsDirectory);
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) {
-          return MapPage(trackService);
-        })
-    );
+    //String wayPointsDirectory = "${trackService.pathToTracksDirectory}/${trackService.gpxFileData.trackName}";
+    String wayPointsDirectory =  path.dirname(_tracks[index].gpxFilePath) + "/${trackService.gpxFileData.trackName}/";
+    //var waypointFiles = await trackService.getWayPointsFiles(wayPointsDirectory);
+    await trackService.getWayPointsFiles(wayPointsDirectory)
+    .then((result) {
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) {
+            return MapPage(trackService);
+          })
+      );
+    });
+//    Navigator.of(context).push(
+//        MaterialPageRoute(builder: (context) {
+//          return MapPage(trackService);
+//        })
+//    );
 
 //    .then((result) {
 //        Navigator.of(context).push(

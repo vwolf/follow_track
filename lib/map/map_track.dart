@@ -384,6 +384,9 @@ class MapTrackState extends State<MapTrack> {
   /// Use coords to get in marker list (_tourGpxData.trackPoints).
   _handleTapOnMarker(LatLng latlng, int index) {
     print('Tap on marker at $latlng with index: $index');
+    setState(() {
+
+    });
   }
 
 
