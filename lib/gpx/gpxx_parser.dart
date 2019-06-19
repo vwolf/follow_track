@@ -27,17 +27,46 @@ class GpxxParser {
     if (documentType == "gpxx") {
       Iterable<xml.XmlElement>items = document.findAllElements('wpt');
       items.map((xml.XmlElement item) {
+        Waypoint newWaypoint = Waypoint(description: "");
         // get waypoint name
         var name = getValue(item.findElements('name'));
         if (name != null) {
-          Waypoint newWaypoint = Waypoint(name: name);
+          newWaypoint.name = name;
           double lat = double.parse(item.getAttribute('lat'));
           double lng = double.parse(item.getAttribute('lon'));
-//          var pos = {"lat": lat, "lon": lng};
-//          String posJson = jsonEncode(pos);
           newWaypoint.location = LatLng(lat, lng);
-          waypoints.add(newWaypoint);
+          //waypoints.add(newWaypoint);
         }
+        // extensions
+        //var extension = getValue(item.findElements('extensions'));
+        Iterable<xml.XmlElement> extensions = item.findElements('extensions');
+        if (extensions != null) {
+          //print(extensions);
+          extensions.forEach((xml.XmlElement f) {
+            print(f.name);
+
+            Iterable<xml.XmlElement> w = f.findElements("gpxx:WaypointExtension");
+            if (w != null) {
+              w.forEach((xml.XmlElement wf) {
+                print(wf.name);
+                Iterable<xml.XmlElement> colorNode = wf.findElements("gpxx:DisplayColor");
+                colorNode.forEach((xml.XmlElement color) {
+                  print(color.name);
+                  print(getValue(colorNode));
+                  newWaypoint.color = getValue(colorNode);
+                });
+                Iterable<xml.XmlElement> extensionNode = wf.findElements("gpxx:Extensions");
+                extensionNode.forEach((xml.XmlElement extension) {
+                  print(extension);
+                  print(extension.getAttribute("Description"));
+                  newWaypoint.description = extension.getAttribute("Description");
+                });
+              });
+            }
+
+          });
+        }
+        waypoints.add(newWaypoint);
       }).toList(growable: true);
 
       

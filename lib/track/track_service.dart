@@ -151,97 +151,48 @@ class TrackService {
   /// 1. Get all gpx files
   /// 2. Send to parser => parseWpts()
   ///
-  Future<bool> getTrackWayPoints() async {
-    // path to directory
-    String wayPointDirectory =
-        "$pathToTracksDirectory/${gpxFileData.trackName}";
-    // does the directory exist?
-
+  /// [wayPointDirectory]
+  /// [callBack]
+  Future getTrackWayPoints(String wayPointDirectory, callBack) async {
     List<String> wayPointsFiles = [];
 
     Directory(wayPointDirectory)
         .list(recursive: false, followLinks: false)
         .listen((FileSystemEntity entity) {
-      if (path.extension(entity.path) == ".gpx") {
-        wayPointsFiles.add(entity.path);
-      }
-    }).onDone(() => {
-      parseWpts(wayPointsFiles)
-    });
-
-    //await parseWpts(wayPointsFiles);
+          if(path.extension(entity.path) == '.gpx') {
+            wayPointsFiles.add(entity.path);
+          }
+        }).onDone(() {
+          if (wayPointsFiles.length > 0) {
+            parseWpts(wayPointsFiles, callBack);
+          } else {
+            callBack(this);
+          }
+        });
   }
 
-  Future<List> getWayPointsFiles(String wayPointDirectory) async {
-    List<String> wayPointsFiles = [];
-    //var getFiles =
-    await Future<List<String>>( () {
-      Directory(wayPointDirectory)
-          .list(recursive: false, followLinks: false)
-          .listen((FileSystemEntity entity) {
-        if(path.extension(entity. path) == '.gpx') {
-          wayPointsFiles.add(entity.path);
-        }
-      }).onDone(() => {
-        print ("done wayPointsFiles.length ${wayPointsFiles.length}"),
-        parseWpts(wayPointsFiles)
-      });
-      //return wayPointsFiles;
-    }).then((ret) {
-      print("getFiles.ret: $ret");
+
+  parseSingleWpts(String wayPointFilePath) async {
+    await ReadFile().readFile(wayPointFilePath)
+    .then((contents) {
+      List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
+      gpxFileData.addWaypoint(newWaypoints);
     });
 
-    //await getFiles;
-
-//    try {
-//      var result = await getFiles;
-//      print ("result $result");
-//    } catch (e) {
-//      print (e);
-//    } finally {
-//      print ("FINAlLY DONE");
-//    }
-    //return wayPointsFiles;
-
-//    Directory(wayPointDirectory)
-//        .list(recursive: false, followLinks: false)
-//        .listen((FileSystemEntity entity) {
-//          if(path.extension(entity.path) == '.gpx') {
-//            wayPointsFiles.add(entity.path);
-//          }
-//        }).onDone(() => {
-//          print ("onDone")
-//    });
-//    return wayPointsFiles;
   }
 
-//  parseWpts(List<String> wayPointsFiles)  {
-//
-//    if (wayPointsFiles.length > 0) {
-//      for (var i = 0; i < wayPointsFiles.length; i++) {
-//        final fc = ReadFile().readFile(wayPointsFiles[i]);
-//        fc.then((contents) {
-//          List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
-//          print(newWaypoints.length);
-//          gpxFileData.addWaypoint(newWaypoints);
-//        });
-//      }
-//
-//    }
-//    //gpxFileData.trackName
-//  }
-
-  Future parseWpts(List<String> wayPointsFiles) async {
+  Future parseWpts(List<String> wayPointsFiles, callback) async {
     if (wayPointsFiles.length > 0) {
       for (var i = 0; i < wayPointsFiles.length; i++) {
-        await ReadFile().readFile(wayPointsFiles[i]).then((contents) {
+        await ReadFile().readFile(wayPointsFiles[i])
+        .then((contents) {
           List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
           print(newWaypoints.length);
           gpxFileData.addWaypoint(newWaypoints);
         });
       }
+      callback(this);
     }
-    //gpxFileData.trackName
   }
 }
 

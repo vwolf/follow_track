@@ -24,6 +24,8 @@ class MapStatusLayer implements MapPlugin {
   bool offline = false;
   String status = "";
 
+  Map<String, int> zoom = { "zoom_min": 1, "zoom_max": 1, "zoom": 1};
+
   MapStatusLayer(bool this.locationOn, bool this.offline, String this.status);
 
 
@@ -35,7 +37,13 @@ class MapStatusLayer implements MapPlugin {
           streamCtrl: options.streamController,
           locationOn: locationOn,
           offline: offline,
-          status: status,);
+          status: status,
+          zoom: {
+            "zoom_min": mapState.options.minZoom,
+            "zoom_max": mapState.options.maxZoom,
+            "zoom": mapState.options.zoom
+          }
+      );
     }
   }
 
@@ -54,9 +62,18 @@ class MapStatusLayer implements MapPlugin {
       case "offline_on" :
         this.offline = value;
         break;
+      case "zoom_in" :
+        //this.zoom["zoom"] = value;
     }
 
     updateStatusText();
+  }
+
+  zoomNotification(int zoom_value) {
+    this.zoom['zoom'] = zoom_value;
+
+    updateStatusText();
+
   }
 
   updateStatusText() {
@@ -64,6 +81,7 @@ class MapStatusLayer implements MapPlugin {
     locationOn == true ? status += "Position On" : status += "Position Off";
     status += " / ";
     offline == true ? status +=  "Offline Map" : status += "Online Map";
+    status += " / ${zoom['zoom']}";
   }
 
 }
@@ -74,8 +92,9 @@ class MapStatus extends StatefulWidget {
   final locationOn;
   final offline;
   final status;
+  final zoom;
 
-  MapStatus({this.streamCtrl, this.locationOn, this.offline, this.status});
+  MapStatus({this.streamCtrl, this.locationOn, this.offline, this.status, this.zoom});
 
   @override
   MapStatusState createState() => MapStatusState();
@@ -114,12 +133,28 @@ class MapStatusState extends State<MapStatus> {
                 //statusText,
                 widget.status,
                 style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 12.0),
               ),
             ),
           ),
           Row(
             children: <Widget>[
+              IconButton(
+                icon: Icon(
+                  Icons.zoom_in,
+                  color: Colors.orange,
+                  size: 36.0,
+                ),
+                onPressed: () => iconAction('zoom_in'),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.zoom_out,
+                  color: Colors.orange,
+                  size: 36.0,
+                ),
+                onPressed: () => iconAction('zoom_out'),
+              ),
               IconButton(
                 icon: Icon(
                   Icons.offline_pin,

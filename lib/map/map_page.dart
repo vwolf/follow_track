@@ -42,6 +42,8 @@ class MapPageState extends State<MapPage> {
   double distanceToStart = 0.0;
   double distanceToEnd = 0.0;
 
+  int openWayPoint;
+
   void initState() {
     super.initState();
     initStreamController();
@@ -70,15 +72,10 @@ class MapPageState extends State<MapPage> {
           openPersistentBottomSheet();
        }
        break;
-//        if ( trackingPageStreamMsg.msg == "offline_on__") {
-//          if (_mapTrack.trackService.pathToOfflineMap == null ) {
-//            _offlineMapDialog = true;
-//            openFileIO();
-//          } else {
-//
-//          }
-//        };
-//        break;
+
+      case "wayPointAction" :
+        openWayPointBottomSheet(trackingPageStreamMsg.msg);
+        break;
     }
 
   }
@@ -101,6 +98,21 @@ class MapPageState extends State<MapPage> {
   }
 
 
+
+  openWayPointBottomSheet(wayPointIndex) {
+    if (_persistentBottomSheetController == null) {
+      openWayPoint = wayPointIndex;
+      _persistentBottomSheetController = _scaffoldKey.currentState.showBottomSheet((BuildContext context) {
+        return _wayPointSheet;
+      });
+    } else {
+      _persistentBottomSheetController.close();
+      _persistentBottomSheetController = null;
+    }
+
+  }
+
+
   Widget get _trackInfoSheet {
     return Container(
       color: Colors.blueGrey,
@@ -108,7 +120,7 @@ class MapPageState extends State<MapPage> {
       padding: EdgeInsets.only(top: 0.0, bottom: 2.0),
       constraints: BoxConstraints.loose(Size(double.infinity, 240.0)),
           child: ListView(
-            padding: EdgeInsets.symmetric(vertical: 2.0,  horizontal: 0.0),
+            //padding: EdgeInsets.symmetric(vertical: 2.0,  horizontal: 0.0),
             //padding: EdgeInsets.all(0.0),
             children: <Widget>[
               ListTile(
@@ -117,7 +129,7 @@ class MapPageState extends State<MapPage> {
               ),
               ListTile(
                 //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
-                title: Text("Distance to start point: $distanceToStart meter"),   //${getDistanceTo().toString()}
+                title: Text("Distance to start point: $distanceToStart m"),   //${getDistanceTo().toString()}
               ),
               ListTile(
                 title: Text("Distance to end point: $distanceToEnd m"),
@@ -140,6 +152,34 @@ class MapPageState extends State<MapPage> {
 //            ),
 //        ),
 //      ),
+    );
+  }
+
+
+  Widget get _wayPointSheet {
+    return Container(
+      color: Colors.blueGrey,
+      width: double.infinity,
+      constraints: BoxConstraints.loose(Size(double.infinity, 240.0)),
+      //alignment: Alignment.centerLeft,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          //mainAxisSize: MainAxisSize.min,
+
+          children: <Widget>[
+            Container(
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.only(left: 12.0, top: 20.0),
+              child: Text("${_mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].name}", textAlign: TextAlign.left,),
+            ),
+            Container(
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.only(left: 12.0, top: 10.0),
+              child: Text("${_mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].description}"),
+            ),
+
+          ],
+        ),
     );
   }
 

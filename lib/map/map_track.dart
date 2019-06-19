@@ -69,7 +69,8 @@ class MapTrackState extends State<MapTrack> {
     super.initState();
     streamInit();
     setMapPath = getMapPath;
-    _mapStatusLayer.status = "Position Off / Online Map";
+    _mapStatusLayer.status = "Position Off / Online Map / 13";
+
   }
 
   @override
@@ -117,6 +118,22 @@ class MapTrackState extends State<MapTrack> {
             }
 
             break;
+
+          case "zoom_in" :
+            _mapController.move(_mapController.center, _mapController.zoom + 1.0);
+            _mapStatusLayer.zoomNotification(_mapController.zoom.toInt());
+            setState(() {
+
+            });
+            break;
+
+          case "zoom_out" :
+            _mapController.move(_mapController.center, _mapController.zoom - 1.0);
+            setState(() {
+
+            });
+            break;
+
         }
         break;
 
@@ -221,13 +238,14 @@ class MapTrackState extends State<MapTrack> {
         options: MapOptions(
           center: startPos,
           zoom: 13,
-          minZoom: 4,
+          minZoom: 7,
           maxZoom: 18,
           onTap: _handleTap,
           onLongPress: _handleLongPress,
+          onPositionChanged: _handlePositionChange,
           plugins: [
             _mapStatusLayer,
-          ]
+          ],
         ),
         layers: [
           TileLayerOptions(
@@ -258,6 +276,7 @@ class MapTrackState extends State<MapTrack> {
           ),
           MapStatusLayerOptions(
             streamController: streamController,
+            //_mapStatusLayer.zoom["zoom"] = 12,
             //locationOn: false,
             //offline: false,
           ),
@@ -333,13 +352,6 @@ class MapTrackState extends State<MapTrack> {
 
   /// Waypoint marker
   List<Marker> get wayPointsList => makeWayPointsList();
-//  List<Marker> get wayPointsList{
-//    trackService.getTrackWayPoints();
-//    setState(() {
-//
-//    });
-//    return makeWayPointsList();
-//  }
 
   List<Marker> makeWayPointsList()  {
     List<Marker> ml = [];
@@ -355,10 +367,16 @@ class MapTrackState extends State<MapTrack> {
           point: waypoint.location,
           builder: (ctx) =>
               Container(
-                child: Icon(
-                  Icons.home,
-                  color: Colors.deepOrangeAccent,
-                ),
+                child: GestureDetector(
+                  onTap: () {
+                    _handleTapOnWayPoint(i);
+                  },
+                  child: Icon(
+                    Icons.home,
+                    color: Colors.deepOrangeAccent,
+                  ),
+                )
+
               )
         );
         ml.add(newMarker);
@@ -376,6 +394,12 @@ class MapTrackState extends State<MapTrack> {
     print("_handleLongPress at $latlng");
   }
 
+  void _handlePositionChange(MapPosition mapPosition, bool b) {
+    print("_handlePositionChange");
+    print(_mapController.zoom);
+    _mapStatusLayer.zoomNotification(_mapController.zoom.toInt());
+  }
+
   void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) {
     print("_onTap $msg + Polyline $polyline + LatLng $latlng + ploylintPoint $polylinePoint");
   }
@@ -387,6 +411,15 @@ class MapTrackState extends State<MapTrack> {
     setState(() {
 
     });
+  }
+
+
+  /// Tap on waypoint icon
+  ///
+  /// [index] positon in [TrackService.gpxFileData.wayPoints]
+  _handleTapOnWayPoint(int index) {
+    print ("Tap on waypoint with index $index");
+    streamController.add(TrackPageStreamMsg("wayPointAction", index));
   }
 
 

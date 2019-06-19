@@ -34,6 +34,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+typedef LoadMap = void Function(TrackService trackService);
+
 /// This the start page. Display list of all available gpx tracks in [TrackList].
 ///
 class MainPage extends StatefulWidget {
@@ -56,6 +58,8 @@ class _MainPageState extends State<MainPage> {
   String _gpxFileDirectoryString = "?";
   Map<String, dynamic> trackSettings;
 
+  LoadMap loadMap;
+
   /// Set the directory with gpx files
   void initState() {
     super.initState();
@@ -63,6 +67,7 @@ class _MainPageState extends State<MainPage> {
     setDirectory();
     readSettings();
 
+    loadMap = loadMapCallback;
    // readSettings();
     //writeSettings();
   }
@@ -294,42 +299,27 @@ class _MainPageState extends State<MainPage> {
   }
 
 
+  /// After track and waypoints loaded display map with waypoints
+  ///
+  void loadMapCallback(TrackService trackService) {
+    print("waypoints loaded");
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return MapPage(trackService);
+        })
+    );
+  }
+
+
+  /// Tap on track list entry
+  ///
+  /// [loadMapCallBack] returns after parsing of possible waypoints
   _handleTap(index) async {
     print("handleTap()");
     TrackService trackService = TrackService(_tracks[index]);
     await trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
-    //String wayPointsDirectory = "${trackService.pathToTracksDirectory}/${trackService.gpxFileData.trackName}";
     String wayPointsDirectory =  path.dirname(_tracks[index].gpxFilePath) + "/${trackService.gpxFileData.trackName}/";
-    //var waypointFiles = await trackService.getWayPointsFiles(wayPointsDirectory);
-    await trackService.getWayPointsFiles(wayPointsDirectory)
-    .then((result) {
-      Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) {
-            return MapPage(trackService);
-          })
-      );
-    });
-//    Navigator.of(context).push(
-//        MaterialPageRoute(builder: (context) {
-//          return MapPage(trackService);
-//        })
-//    );
-
-//    .then((result) {
-//        Navigator.of(context).push(
-//          MaterialPageRoute(builder: (context) {
-//            return MapPage(trackService);
-//        })
-//      );
-//    }).whenComplete( () {
-////      Navigator.of(context).push(
-////          MaterialPageRoute(builder: (context) {
-////            return MapPage(trackService);
-////          })
-////      );
-//    });
-
-
+    await trackService.getTrackWayPoints(wayPointsDirectory, loadMapCallback);
   }
 
 
