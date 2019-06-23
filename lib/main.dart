@@ -16,6 +16,8 @@ import 'track/track_service.dart';
 import 'fileIO/local_file.dart';
 import 'fileIO/permissions.dart';
 
+import 'fileIO/settings.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -128,6 +130,7 @@ class _MainPageState extends State<MainPage> {
     print("Read track settings from local file");
     trackSettings = await LocalFile().readJson("tracksSettings.txt");
     print("trackSettings: $trackSettings");
+    Settings.settings.set(trackSettings);
   }
 
 
@@ -171,6 +174,45 @@ class _MainPageState extends State<MainPage> {
 
     }
   }
+
+  /// Set the distance offset from track when notification is triggered
+  ///
+  Future <String> editTrackOffsetDistance(BuildContext context) async {
+    String distance = '';
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Set the distance when to get a notification"),
+            content: Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Distance in meter',
+                    ),
+                    keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+                    onChanged: (value) {
+                      distance = value;
+                    },
+                  ),
+                )
+              ],
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(distance);
+                },
+              )
+            ],
+          );
+        });
+  }
+
 
   /// Load meta data from tracks in [_gpxFileDirectory] into [Track]
   ///
@@ -226,6 +268,21 @@ class _MainPageState extends State<MainPage> {
               onTap: setGpxFileDirectory,
             ),
             ListTile(
+              title: Text("Track Offset Distance Notification"),
+              subtitle: Text("${Settings.settings.distanceToTrackAlert} meter"),
+              trailing: IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () async {
+                    final String distance = await editTrackOffsetDistance(context);
+                    ///print("offsetDistance $distance");
+
+                    setState(() {
+                      Settings.settings.distanceToTrackAlert = int.parse(distance);
+                    });
+                  }
+              ),
+            ),
+            ListTile(
               title: Text("HowTo's"),
               trailing: Icon(Icons.open_in_new),
               onTap: showHowTo,
@@ -233,22 +290,22 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
-      body: Container(
-        child: _buildTrackList,
-      ),
-      persistentFooterButtons: <Widget>[
-        FloatingActionButton.extended(
-          heroTag: "addTrack",
-            onPressed: addTrack,
-            icon: Icon(Icons.add),
-            label: Text("Add Track")),
-        FloatingActionButton.extended(
-          heroTag: "batterylevel",
-            onPressed: _getBatteryLevel,
-            label: Text("Battery Level"),
-        )
-      ],
 
+    body: Container(
+      child: _buildTrackList,
+    ),
+    persistentFooterButtons: <Widget>[
+    FloatingActionButton.extended(
+      heroTag: "addTrack",
+      onPressed: addTrack,
+      icon: Icon(Icons.add),
+      label: Text("Add Track")),
+    FloatingActionButton.extended(
+      heroTag: "batterylevel",
+      onPressed: _getBatteryLevel,
+      label: Text("Battery Level"),
+        )
+    ],
 
     );
   }
@@ -297,6 +354,8 @@ class _MainPageState extends State<MainPage> {
       return Container();
     }
   }
+
+
 
 
   /// After track and waypoints loaded display map with waypoints

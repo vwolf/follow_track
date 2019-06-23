@@ -14,6 +14,8 @@ import '../models/waypoint.dart';
 import '../gpx/gpx_parser.dart';
 import '../gpx/gpxx_parser.dart';
 import '../gpx/read_file.dart';
+import 'geoLocationService.dart';
+
 import '../fileIO/local_file.dart';
 
 /// Service used by [Map]
@@ -92,9 +94,10 @@ class TrackService {
   }
 
   /// Return the distance beteen two track points
-  double getDistanceBetweenPoints(LatLng start, LatLng end) {
+  Future getDistanceBetweenPoints(LatLng start, LatLng end) async {
     double distance = 0.0;
 
+    distance = await Geolocator().distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude);
     return distance;
   }
 
@@ -145,6 +148,30 @@ class TrackService {
     print(xTile.toInt());
     print(yTile.toInt());
   }
+
+  /// Find closest point on track
+  /// Get distance between point on polyline and latlng
+  ///
+  /// Return List[index, distance]
+  Future<List<num>> getClosestTrackPoint(LatLng latlng) async {
+    double minDist = double.maxFinite;
+    int pointIdx;
+
+    for (var i = 0; i < gpxFileData.gpxLatlng.length; i++) {
+      await GeoLocationService.gls.getDistanceBetweenCoords(latlng, gpxFileData.gpxLatlng[i])
+          .then((result) {
+        double dist = result.truncateToDouble();
+        //print(dist);
+        if (dist < minDist) {
+          minDist = dist;
+          pointIdx = i;
+        }
+      });
+    }
+
+    return Future.value([pointIdx, minDist]);
+  }
+
 
   /// Read data with way point data
   /// Waypoint data in directory with track name

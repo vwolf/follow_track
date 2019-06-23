@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 
@@ -18,6 +19,7 @@ import '../fileIO/local_file.dart';
 
 import '../track/geoLocationService.dart';
 import '../models/waypoint.dart';
+import '../fileIO/settings.dart';
 
 typedef MapPathCallback = void Function(String mapPath);
 
@@ -136,20 +138,6 @@ class MapTrackState extends State<MapTrack> {
 
         }
         break;
-
-//      case "callback" :
-//        String status = "";
-//        _location == true ? status += "Position On" : status += "Position Off";
-//        status += " / ";
-//        _offline == true ? status += "Offline Modus" : status += "Online Modus";
-//
-//        event.msg(status);
-//        break;
-//
-//      case "offline" :
-//        _offline = event.msg;
-//
-//        break;
     }
   }
 
@@ -160,8 +148,6 @@ class MapTrackState extends State<MapTrack> {
     if (_offline == false) {
       // switch to offline modus
       if(trackService.pathToOfflineMap == null) {
-        //
-
         String pathToTrack = await FilePicker.getFilePath(type: FileType.ANY);
       }
     }
@@ -225,6 +211,7 @@ class MapTrackState extends State<MapTrack> {
         gpsPositionList;
         _mapController.move(_currentPosition, _mapController.zoom);
         trackService.currentPosition = _currentPosition;
+        checkDistanceToTrack(_currentPosition);
       });
     }
   }
@@ -386,8 +373,16 @@ class MapTrackState extends State<MapTrack> {
   }
 
 
-  void _handleTap(LatLng latlng) {
+  /// Tap on map (not on marker or polyline)
+  ///
+  void _handleTap(LatLng latlng) async {
     print("_handleTap at $latlng");
+
+    await trackService.getClosestTrackPoint(latlng)
+    .then((dist) {
+      print("Index: ${dist[0]}, Distance in meter: ${dist[1]}");
+    });
+
   }
 
   void _handleLongPress(LatLng latlng) {
@@ -395,8 +390,8 @@ class MapTrackState extends State<MapTrack> {
   }
 
   void _handlePositionChange(MapPosition mapPosition, bool b) {
-    print("_handlePositionChange");
-    print(_mapController.zoom);
+//    print("_handlePositionChange");
+//    print(_mapController.zoom);
     _mapStatusLayer.zoomNotification(_mapController.zoom.toInt());
   }
 
@@ -430,4 +425,14 @@ class MapTrackState extends State<MapTrack> {
     return 0.0;
   }
 
+  checkDistanceToTrack(LatLng latlng) async {
+    await trackService.getClosestTrackPoint(latlng)
+        .then((dist) {
+      print("Index: ${dist[0]}, Distance in meter: ${dist[1]}");
+      if (dist[1] > Settings.settings.distanceToTrackAlert) {
+        print("Alert distance!!!");
+        SystemSound.play(SystemSoundType.click);
+      }
+    });
+  }
 }
