@@ -12,11 +12,13 @@ class RequestPermissions {
 
     final List<PermissionGroup> permissions = <PermissionGroup>[permission];
     bool externalStoragePermission = false;
+    //bool sdCardPermission = false;
 
     if (Platform.isAndroid) {
       final Map<PermissionGroup, PermissionStatus> permissionRequestResult = await PermissionHandler().requestPermissions(permissions);
-      externalStoragePermission = permissionRequestResult[PermissionGroup.storage] == PermissionStatus.granted;
+      externalStoragePermission = permissionRequestResult[PermissionGroup.storage ] == PermissionStatus.granted;
 
+      //sdCardPermission = permissionRequestResult[PermissionGroup.photos ] == PermissionStatus.granted;
     }
 
     return externalStoragePermission;

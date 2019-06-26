@@ -8,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider_ex/path_provider_ex.dart';
+
 
 import 'models/track.dart';
 import 'map/map_page.dart';
@@ -69,6 +71,8 @@ class _MainPageState extends State<MainPage> {
     setDirectory();
     readSettings();
 
+    pathToStorage();
+
     loadMap = loadMapCallback;
    // readSettings();
     //writeSettings();
@@ -94,6 +98,43 @@ class _MainPageState extends State<MainPage> {
     return false;
   }
 
+  /// Get path to external SDCard and add to [Settings]
+  /// Uses  path_provider_ex,
+  ///
+  Future<void> pathToStorage() async {
+    List<StorageInfo> storageInfo;
+
+    if (Platform.isAndroid) {
+      try {
+        storageInfo = await PathProviderEx.getStorageInfo();
+      } on PlatformException {}
+    }
+
+    if (!mounted) return;
+
+    for (var i = 0; i < storageInfo.length; i++) {
+      print("Rootdir: ${storageInfo[i].rootDir}");
+      print(storageInfo[i].appFilesDir);
+    }
+
+    if (storageInfo.length >= 1) {
+      Settings.settings.externalSDCard = storageInfo[1].rootDir;
+      Settings.settings.pathToMapTiles =
+      "${storageInfo[1].rootDir}/Tracksmaps/bergesladenleden";
+    }
+    // storageInfo[1] is the sdcard - list directorys
+//    List<String> filePaths = [];
+//    Directory("${storageInfo[1].rootDir}/Tracksmaps").list(recursive: true, followLinks: false)
+//        .listen((FileSystemEntity entity) {
+//          print(entity.path);
+//      if (path.extension(entity.path) == ".gpx") {
+//        filePaths.add(entity.path);
+//      }
+//    })
+//        .onDone( () => {
+//      print(filePaths.length)
+//    });
+  }
 
 
   void setDirectory() async {
@@ -105,6 +146,7 @@ class _MainPageState extends State<MainPage> {
           _gpxFileDirectoryString = "${dir.path}/Tracks";
         });
         Directory(_gpxFileDirectoryString).create(recursive: true);
+
         findTracks();
       } catch (e) {
         print("Error $e");
@@ -148,6 +190,11 @@ class _MainPageState extends State<MainPage> {
         .onDone( () => {
           this.loadTrackMetaData(trackPath)
     });
+
+    if (trackPath.length == 0) {
+      // track data could be on external sdCard
+
+    }
   }
 
   /// Select directory with gpx files
@@ -164,11 +211,17 @@ class _MainPageState extends State<MainPage> {
       String pathToTrack = await FilePicker.getFilePath(type: FileType.ANY);
       if (pathToTrack != "" && pathToTrack != null) {
         String dirPath = path.dirname(pathToTrack);
+        List<String> dirPathSplit = path.dirname(pathToTrack).split('/');
+        if (dirPathSplit.length > 0) {
+          String filePath = dirPathSplit.removeLast();
+          //dirPath = dirPathSplit.join('/');
+        }
         print (dirPath);
-//        setState(() {
-//          _gpxFileDirectory = dirPath;
-//          Navigator.pop(context);
-//        });
+        setState(() {
+          _gpxFileDirectoryString = dirPath;
+          findTracks();
+          Navigator.pop(context);
+        });
       }
     } on Platform catch(e) {
 
@@ -376,8 +429,10 @@ class _MainPageState extends State<MainPage> {
   _handleTap(index) async {
     print("handleTap()");
     TrackService trackService = TrackService(_tracks[index]);
+
     await trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
     String wayPointsDirectory =  path.dirname(_tracks[index].gpxFilePath) + "/${trackService.gpxFileData.trackName}/";
+    trackService.track.offlineMapPath = Settings.settings.pathToMapTiles;
     await trackService.getTrackWayPoints(wayPointsDirectory, loadMapCallback);
   }
 

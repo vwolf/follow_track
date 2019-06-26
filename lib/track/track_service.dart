@@ -182,20 +182,23 @@ class TrackService {
   /// [callBack]
   Future getTrackWayPoints(String wayPointDirectory, callBack) async {
     List<String> wayPointsFiles = [];
-
-    Directory(wayPointDirectory)
-        .list(recursive: false, followLinks: false)
-        .listen((FileSystemEntity entity) {
-          if(path.extension(entity.path) == '.gpx') {
-            wayPointsFiles.add(entity.path);
-          }
-        }).onDone(() {
-          if (wayPointsFiles.length > 0) {
-            parseWpts(wayPointsFiles, callBack);
-          } else {
-            callBack(this);
-          }
-        });
+    // does wayPointDirectory exist?
+    if (Directory(wayPointDirectory).existsSync()) {
+      Directory(wayPointDirectory)
+          .list(recursive: false, followLinks: false)
+          .listen((FileSystemEntity entity) {
+        if(path.extension(entity.path) == '.gpx') {
+          wayPointsFiles.add(entity.path);
+        }
+      }).onDone(() {
+        if (wayPointsFiles.length > 0) {
+          parseWpts(wayPointsFiles, callBack);
+        } else {
+          callBack(this);
+        }
+      });
+    }
+    callBack(this);
   }
 
 

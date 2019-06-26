@@ -1,8 +1,11 @@
+import 'package:path_provider/path_provider.dart';
+
 class Settings {
 
-  String pathToTracks = "";
+  String pathToTracks = "/Tracks";
   int distanceToTrackAlert = 100;
-
+  String pathToMapTiles = "";
+  String externalSDCard;
 
   Settings._();
   static final Settings settings = Settings._();

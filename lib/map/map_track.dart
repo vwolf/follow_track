@@ -110,6 +110,7 @@ class MapTrackState extends State<MapTrack> {
               openFileIO();
             } else {
               trackService.pathToOfflineMap = trackService.track.offlineMapPath;
+
               setState(() {
                 _offline = !_offline;
                 _mapStatusLayer.statusNotification(event.msg, _offline);
@@ -236,8 +237,8 @@ class MapTrackState extends State<MapTrack> {
         ),
         layers: [
           TileLayerOptions(
-            offlineMode: _offline,
-            fromAssets: false,
+            //offlineMode: _offline,
+            tileProvider: _offline ? FileTileProvider() : CachedNetworkTileProvider(),
             urlTemplate: _offline ? "${trackService.pathToOfflineMap}/{z}/{x}/{y}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             //urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             subdomains: _offline ? const <String>[] : ['a', 'b', 'c'],
@@ -389,7 +390,7 @@ class MapTrackState extends State<MapTrack> {
     print("_handleLongPress at $latlng");
   }
 
-  void _handlePositionChange(MapPosition mapPosition, bool b) {
+  void _handlePositionChange(MapPosition mapPosition, bool hasGesture, bool isUserGesture) {
 //    print("_handlePositionChange");
 //    print(_mapController.zoom);
     _mapStatusLayer.zoomNotification(_mapController.zoom.toInt());

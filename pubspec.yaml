@@ -31,9 +31,11 @@ dev_dependencies:
   file_picker: ^1.1.1
   geolocator: ^5.0.0
   permission_handler: ^3.1.0
-  flutter_map: ^0.5.0
+  flutter_map: ^0.5.5
   xml: ^3.2.3
-  #path_provider: ^1.1.0
+  path_provider_ex:
+
+  # path_provider: ^1.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
