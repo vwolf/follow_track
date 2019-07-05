@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
 
 typedef LoadMap = void Function(TrackService trackService);
 
-/// This the start page. Display list of all available gpx tracks in [TrackList].
+/// This is the start page. Display list of all available gpx tracks in [TrackList].
 ///
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -53,106 +53,124 @@ class MainPage extends StatefulWidget {
 
 
 class _MainPageState extends State<MainPage> {
-
+  // test MethodeChannel
   static const platform = const MethodChannel('devwolf.track.dev/battery');
 
   bool _showHowTo = false;
   List<Track> _tracks = [];
   Directory _gpxFileDirectory;
   String _gpxFileDirectoryString = "?";
+  String _sdCardGpxFileDirectory = "";
+
   Map<String, dynamic> trackSettings;
 
   LoadMap loadMap;
 
-  /// Set the directory with gpx files
+  /// Request permissions (storage)
+  /// First get possible storage paths (internal and external)
+  /// Read gpx track data from possible path's
+  ///
   void initState() {
     super.initState();
 
     setDirectory();
     readSettings();
 
-    pathToStorage();
-
     loadMap = loadMapCallback;
-   // readSettings();
-    //writeSettings();
+
   }
+
+  /// Use [Path_Provider] to get path to external storage directory.
+  /// Default directory is Tracks. This can be changed using settings.
+  /// Here we only search in internal storage
+  ///
+  void setDirectory() async {
+
+    //var permission = await requestPermission();
+    var permission = await RequestPermissions().requestPermission(PermissionGroup.storage);
+    if (permission) {
+      await setStoragePath().then((result) {
+        if (result) {
+          // no directory at internal storage path then create empty directory
+            _gpxFileDirectoryString = Settings.settings.pathTracksInternal;
+            if (Directory(_gpxFileDirectoryString).existsSync() == false) {
+              Directory(_gpxFileDirectoryString).create(recursive: true);
+            }
+            findTracks(_gpxFileDirectoryString);
+        }
+      }).then((_) {
+        // tracks on sd card?
+        print(Settings.settings.externalSDCard);
+        print(Settings.settings.pathTracksInternal);
+        if (Settings.settings.externalSDCard != null) {
+          // build default path
+          String p = "${Settings.settings.externalSDCard}/${Settings.settings.defaultTrackDirectory}";
+          print(p);
+          searchSDCard().then((r) {
+            if (r == true) {
+              print("SEARCH SDCARD!!");
+              findTracks(p);
+            }
+          });
+
+        }
+      });
+
+    }
+  }
+
 
   /// Permission to read/write to Storage
   ///
-  Future requestPermission() async {
-    var pStatus =  await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
-    if (pStatus == PermissionStatus.denied) {
-      var permissionStatus = await RequestPermissions().requestWritePermissions(PermissionGroup.storage);
-      if(permissionStatus == true) {
-        print("PERMISSION TO ACCESS STORAGE GRANDTED!");
-        print(permissionStatus);
-        return true;
-      } else {
-        print("NO PERMISSION TO ACCESS STORAGE!");
+//  Future requestPermission() async {
+//    var pStatus =  await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
+//    if (pStatus == PermissionStatus.denied) {
+//      var permissionStatus = await RequestPermissions().requestWritePermissions(PermissionGroup.storage);
+//      if(permissionStatus == true) {
+//        print("PERMISSION TO ACCESS STORAGE GRANDTED!");
+//        print(permissionStatus);
+//        return true;
+//      } else {
+//        print("NO PERMISSION TO ACCESS STORAGE!");
+//      }
+//    } else {
+//      print("PERMISSION TO ACCESS STORAGE GRANDTED!");
+//      return true;
+//    }
+//    return false;
+//  }
+
+  /// Set path to internal Storage and to external SDCard.
+  /// Add to [Settings]
+  /// Uses  path_provider_ex,
+  ///
+  Future<bool> setStoragePath() async {
+    List<StorageInfo> storageInfo;
+
+    // storage Android
+    if (Platform.isAndroid) {
+      // storage internal
+      var dir = await getExternalStorageDirectory();
+      Settings.settings.pathTracksInternal = "${dir.path}/${Settings.settings.defaultTrackDirectory}";
+
+      // storage sd card (external)
+      try {
+        storageInfo = await PathProviderEx.getStorageInfo();
+      } on PlatformException {}
+
+      if (mounted) {
+        if (storageInfo.length >= 1) {
+          Settings.settings.externalSDCard = storageInfo[1].rootDir;
+        }
       }
-    } else {
-      print("PERMISSION TO ACCESS STORAGE GRANDTED!");
+
       return true;
     }
     return false;
   }
 
-  /// Get path to external SDCard and add to [Settings]
-  /// Uses  path_provider_ex,
-  ///
-  Future<void> pathToStorage() async {
-    List<StorageInfo> storageInfo;
-
-    if (Platform.isAndroid) {
-      try {
-        storageInfo = await PathProviderEx.getStorageInfo();
-      } on PlatformException {}
-    }
-
-    if (!mounted) return;
-
-    for (var i = 0; i < storageInfo.length; i++) {
-      print("Rootdir: ${storageInfo[i].rootDir}");
-      print(storageInfo[i].appFilesDir);
-    }
-
-    if (storageInfo.length >= 1) {
-      Settings.settings.externalSDCard = storageInfo[1].rootDir;
-      Settings.settings.pathToMapTiles =
-      "${storageInfo[1].rootDir}/Tracksmaps/bergesladenleden";
-    }
-    // storageInfo[1] is the sdcard - list directorys
-//    List<String> filePaths = [];
-//    Directory("${storageInfo[1].rootDir}/Tracksmaps").list(recursive: true, followLinks: false)
-//        .listen((FileSystemEntity entity) {
-//          print(entity.path);
-//      if (path.extension(entity.path) == ".gpx") {
-//        filePaths.add(entity.path);
-//      }
-//    })
-//        .onDone( () => {
-//      print(filePaths.length)
-//    });
-  }
 
 
-  void setDirectory() async {
-    var permission = await requestPermission();
-    if (permission) {
-      try {
-        var dir = await getExternalStorageDirectory();
-        setState(() {
-          _gpxFileDirectoryString = "${dir.path}/Tracks";
-        });
-        Directory(_gpxFileDirectoryString).create(recursive: true);
-
-        findTracks();
-      } catch (e) {
-        print("Error $e");
-      }
-    }
-  }
 
 
   void addTrack() {}
@@ -176,32 +194,64 @@ class _MainPageState extends State<MainPage> {
   }
 
 
-  /// Add all gpx files in [_gpxFileDirectoryString] to [trackPath].
+  /// Add all gpx files in [directoryPath] to [trackPath].
   /// Then call [loadTrackMetaData] to read gpx files.
   ///
-  void findTracks() {
+  void findTracks(String directoryPath) {
     List<String> trackPath = [];
-    Directory(_gpxFileDirectoryString).list(recursive: true, followLinks: false)
+    Directory(directoryPath).list(recursive: true, followLinks: false)
         .listen((FileSystemEntity entity) {
           if (path.extension(entity.path) == ".gpx") {
-            trackPath.add(entity.path);
+            if (trackPath.contains(entity.path) == false) {
+              trackPath.add(entity.path);
+            }
           }
         })
         .onDone( () => {
-          this.loadTrackMetaData(trackPath)
+          trackPath.length == 0 ? searchSDCard() : this.loadTrackMetaData(trackPath)
     });
-
-    if (trackPath.length == 0) {
-      // track data could be on external sdCard
-
-    }
   }
+
+
+
+  Future searchSDCard() async {
+    switch(
+      await showDialog(
+          context: context,
+        builder: (BuildContext context) {
+            return SimpleDialog(
+              title: Text('Search on SD Card?'),
+              children: <Widget>[
+                SimpleDialogOption(
+                  child: Text("Yes"),
+                  onPressed: () {Navigator.pop(context, "Yes");} ),
+                SimpleDialogOption(
+                  child: Text("No"),
+                  onPressed: () {Navigator.pop(context, "No");} ),
+              ],
+            );
+        },
+      )
+    )  {
+      case "Yes" :
+        return true;
+        break;
+
+      case "No" :
+        return false;
+        break;
+    }
+
+    return false;
+  }
+
 
   /// Select directory with gpx files
   ///
   void setGpxFileDirectory() async {
     await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
     Directory externalStorageDir = await getExternalStorageDirectory();
+    Directory absolutExternal = externalStorageDir.absolute;
     externalStorageDir.list(recursive: true, followLinks: false)
     .listen((FileSystemEntity entity) {
       print(entity.path);
@@ -219,7 +269,7 @@ class _MainPageState extends State<MainPage> {
         print (dirPath);
         setState(() {
           _gpxFileDirectoryString = dirPath;
-          findTracks();
+          findTracks(_gpxFileDirectoryString);
           Navigator.pop(context);
         });
       }
@@ -227,6 +277,26 @@ class _MainPageState extends State<MainPage> {
 
     }
   }
+
+
+
+  void getSDCardFiles() {
+    String path = Settings.settings.externalSDCard;
+
+    String pathToTracks = path + "/Tracks/";
+    Directory(pathToTracks).list(recursive: true, followLinks: false)
+    .listen((FileSystemEntity entity) {
+      print(entity.path);
+    });
+    setState(() {
+      _sdCardGpxFileDirectory = pathToTracks;
+      findTracks(_sdCardGpxFileDirectory);
+      Navigator.pop(context);
+    });
+
+
+  }
+
 
   /// Set the distance offset from track when notification is triggered
   ///
@@ -274,6 +344,7 @@ class _MainPageState extends State<MainPage> {
   void loadTrackMetaData(List<String> filePaths) async {
 
     for (var path in filePaths) {
+      print ("loadTrackMetaData from $path");
       Track oneTrack = await Utils().getTrackMetaData(path);
       if (oneTrack.name != "") {
         _tracks.add(oneTrack);
@@ -321,6 +392,12 @@ class _MainPageState extends State<MainPage> {
               onTap: setGpxFileDirectory,
             ),
             ListTile(
+              title: (Text("Gpx file on SD card")),
+              subtitle: Settings.settings.externalSDCard != null ? Text("${Settings.settings.externalSDCard}/Tracks/") : Text("No SDCard"),
+              trailing: Icon(Icons.edit),
+              onTap: getSDCardFiles,
+            ),
+            ListTile(
               title: Text("Track Offset Distance Notification"),
               subtitle: Text("${Settings.settings.distanceToTrackAlert} meter"),
               trailing: IconButton(
@@ -347,18 +424,18 @@ class _MainPageState extends State<MainPage> {
     body: Container(
       child: _buildTrackList,
     ),
-    persistentFooterButtons: <Widget>[
-    FloatingActionButton.extended(
-      heroTag: "addTrack",
-      onPressed: addTrack,
-      icon: Icon(Icons.add),
-      label: Text("Add Track")),
-    FloatingActionButton.extended(
-      heroTag: "batterylevel",
-      onPressed: _getBatteryLevel,
-      label: Text("Battery Level"),
-        )
-    ],
+//    persistentFooterButtons: <Widget>[
+//    FloatingActionButton.extended(
+//      heroTag: "addTrack",
+//      onPressed: addTrack,
+//      icon: Icon(Icons.add),
+//      label: Text("Add Track")),
+//    FloatingActionButton.extended(
+//      heroTag: "batterylevel",
+//      onPressed: _getBatteryLevel,
+//      label: Text("Battery Level"),
+//        )
+//    ],
 
     );
   }

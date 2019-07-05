@@ -2,6 +2,11 @@ import 'package:path_provider/path_provider.dart';
 
 class Settings {
 
+  String defaultTrackDirectory = "Tracks";
+  String pathTracksInternal;
+  String pathTracksExternal;
+  String pathMapTiles;
+
   String pathToTracks = "/Tracks";
   int distanceToTrackAlert = 100;
   String pathToMapTiles = "";

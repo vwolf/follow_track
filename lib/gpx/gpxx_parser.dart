@@ -37,6 +37,10 @@ class GpxxParser {
           newWaypoint.location = LatLng(lat, lng);
           //waypoints.add(newWaypoint);
         }
+        var type = getValue(item.findElements('type'));
+        if (type != null) {
+          newWaypoint.type = type;
+        }
         // extensions
         //var extension = getValue(item.findElements('extensions'));
         Iterable<xml.XmlElement> extensions = item.findElements('extensions');
@@ -60,6 +64,12 @@ class GpxxParser {
                   print(extension);
                   print(extension.getAttribute("Description"));
                   newWaypoint.description = extension.getAttribute("Description");
+                });
+                Iterable<xml.XmlElement> imageNodes = wf.findAllElements("gpxx:Images");
+                newWaypoint.image = [];
+                imageNodes.forEach((xml.XmlElement image) {
+                  print("${image.name}:  ${getValue(imageNodes)}");
+                  newWaypoint.image.add(image.firstChild.toString());
                 });
               });
             }

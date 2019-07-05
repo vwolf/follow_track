@@ -192,13 +192,14 @@ class TrackService {
         }
       }).onDone(() {
         if (wayPointsFiles.length > 0) {
-          parseWpts(wayPointsFiles, callBack);
+          parseWpts(wayPointsFiles, callBack, wayPointDirectory);
         } else {
           callBack(this);
         }
       });
+    } else {
+      callBack(this);
     }
-    callBack(this);
   }
 
 
@@ -211,13 +212,16 @@ class TrackService {
 
   }
 
-  Future parseWpts(List<String> wayPointsFiles, callback) async {
+  Future parseWpts(List<String> wayPointsFiles, callback, waypointsDirectory) async {
     if (wayPointsFiles.length > 0) {
       for (var i = 0; i < wayPointsFiles.length; i++) {
         await ReadFile().readFile(wayPointsFiles[i])
         .then((contents) {
           List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
           print(newWaypoints.length);
+          for (var i = 0; i < newWaypoints.length; i++) {
+            newWaypoints[i].filePath = waypointsDirectory;
+          }
           gpxFileData.addWaypoint(newWaypoints);
         });
       }

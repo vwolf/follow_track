@@ -360,7 +360,7 @@ class MapTrackState extends State<MapTrack> {
                     _handleTapOnWayPoint(i);
                   },
                   child: Icon(
-                    Icons.home,
+                    waypoint.type == null ? Icons.home : getTypeIcon(waypoint.type),
                     color: Colors.deepOrangeAccent,
                   ),
                 )
@@ -374,6 +374,17 @@ class MapTrackState extends State<MapTrack> {
   }
 
 
+  IconData getTypeIcon(String type) {
+    switch( type ) {
+      case "Shop" :
+        return  Icons.shopping_cart;
+        break;
+    }
+
+    return Icons.info;
+  }
+
+
   /// Tap on map (not on marker or polyline)
   ///
   void _handleTap(LatLng latlng) async {
@@ -383,6 +394,8 @@ class MapTrackState extends State<MapTrack> {
     .then((dist) {
       print("Index: ${dist[0]}, Distance in meter: ${dist[1]}");
     });
+
+    streamController.add(TrackPageStreamMsg("tapOnMap", latlng));
 
   }
 
@@ -411,11 +424,13 @@ class MapTrackState extends State<MapTrack> {
 
 
   /// Tap on waypoint icon
+  /// Message to [MapPage] and center map to waypoint position
   ///
   /// [index] positon in [TrackService.gpxFileData.wayPoints]
   _handleTapOnWayPoint(int index) {
     print ("Tap on waypoint with index $index");
     streamController.add(TrackPageStreamMsg("wayPointAction", index));
+    _mapController.move(trackService.gpxFileData.wayPoints[index].location, _mapController.zoom);
   }
 
 

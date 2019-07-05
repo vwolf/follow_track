@@ -43,5 +43,21 @@ Get device id by running xcrun simctl list
 
 #######################################################
 
-Updata path_provider to 1.1.1
+Update path_provider to 1.1.1
 - flutter_maps: path_provider 0.5.0+1
+
+#######################################################
+Load gpx data
+
+1. load from internal storage, directory Tracks
+
+2. load from SD card (SDCard as external storage)
+    - should be possible to choose directory
+
+3. Offline map tiles are always on external SD card in directory OfflineMapTiles
+    - map tiles can be used by different gpx tracks from different directories
+    - different areas in one map tiles directory
+
+    - for small areas it should be possible to store the map tiles on internal storage
+
+SD card as internal storage?

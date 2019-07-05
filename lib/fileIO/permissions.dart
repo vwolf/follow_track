@@ -23,4 +23,36 @@ class RequestPermissions {
 
     return externalStoragePermission;
   }
+
+  /// Permission to read/write to Storage
+  ///
+  Future requestPermission(PermissionGroup permission) async {
+    var permissionStatus =  await PermissionHandler().checkPermissionStatus(permission);
+    bool requestedPermission = false;
+
+    if (permissionStatus == PermissionStatus.denied) {
+      if (Platform.isAndroid) {
+        final Map<PermissionGroup,
+            PermissionStatus> permissionRequestResult = await PermissionHandler()
+            .requestPermissions([permission]);
+        switch (permission) {
+          case (PermissionGroup.storage) :
+            return permissionRequestResult[PermissionGroup.storage] ==
+                PermissionStatus.granted;
+            break;
+
+          case (PermissionGroup.location) :
+            return permissionRequestResult[PermissionGroup.location] ==
+                PermissionStatus.granted;
+            break;
+        }
+      }
+    } else {
+      return true;
+    }
+
+    return requestedPermission;
+  }
+
+
 }

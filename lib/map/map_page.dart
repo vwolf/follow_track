@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
@@ -12,7 +13,9 @@ import '../track/geoLocationService.dart';
 
 typedef MapPath = void Function(String mapPath);
 
-/// Page with map.Display selected track on map
+/// Page with map. Display selected track on map
+/// [PersistentBottomSheet] for track marker infos
+/// [Overlay] for track marker images fullscreen
 class MapPage extends StatefulWidget {
   final TrackService trackService;
 
@@ -24,6 +27,7 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
 
+  GlobalKey mapPageKey = GlobalKey();
   /// communication with map via streams
   StreamController<TrackPageStreamMsg> _streamController = StreamController.broadcast();
   String _gpxFilePath;
@@ -42,8 +46,11 @@ class MapPageState extends State<MapPage> {
   double distanceToStart = 0.0;
   double distanceToEnd = 0.0;
 
+  // waypoints
   int openWayPoint;
-
+  List<FileImage> images = [];
+  OverlayEntry _imageOverlay;
+  
   void initState() {
     super.initState();
     initStreamController();
@@ -62,7 +69,9 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-
+  /// Touch events from map (status layer or marker)
+  ///
+  /// [trackingPageStreamMsg]
   onMapEvent(TrackPageStreamMsg trackingPageStreamMsg) {
     print("TrackingPage.onMapEvent ${trackingPageStreamMsg.type}");
     switch (trackingPageStreamMsg.type) {
@@ -76,11 +85,20 @@ class MapPageState extends State<MapPage> {
       case "wayPointAction" :
         openWayPointBottomSheet(trackingPageStreamMsg.msg);
         break;
+
+      case "tapOnMap" :
+        print("tapOnMap");
+        if (_persistentBottomSheetController != null) {
+          _persistentBottomSheetController.close();
+          _persistentBottomSheetController = null;
+        }
+        break;
     }
 
   }
 
-
+  /// Show a [PersistentBottomSheet]
+  /// First close open [PersistentBottomSheet]
   openPersistentBottomSheet() {
     if (_persistentBottomSheetController == null ) {
       setState(() {
@@ -105,6 +123,8 @@ class MapPageState extends State<MapPage> {
       _persistentBottomSheetController = _scaffoldKey.currentState.showBottomSheet((BuildContext context) {
         return _wayPointSheet;
       });
+      LatLng wayPointLatLng =_mapTrack.trackService.gpxFileData.wayPoints[wayPointIndex].location;
+
     } else {
       _persistentBottomSheetController.close();
       _persistentBottomSheetController = null;
@@ -112,7 +132,8 @@ class MapPageState extends State<MapPage> {
 
   }
 
-
+  /// Track infos
+  ///
   Widget get _trackInfoSheet {
     return Container(
       color: Colors.blueGrey,
@@ -136,26 +157,12 @@ class MapPageState extends State<MapPage> {
               )
             ],
           ),
-
-
-
-//      child: SingleChildScrollView(
-//        child: ConstrainedBox(
-//            constraints: BoxConstraints(),
-//            child: Column(
-//              children: <Widget>[
-//                Padding(
-//                  padding: EdgeInsets.only(left: 12.0),
-//                  child: Text("Track length: ${_mapTrack.trackService.trackLength}"),
-//                )
-//              ],
-//            ),
-//        ),
-//      ),
     );
   }
 
 
+  /// Waypoint infos
+  ///
   Widget get _wayPointSheet {
     return Container(
       color: Colors.blueGrey,
@@ -177,25 +184,124 @@ class MapPageState extends State<MapPage> {
               padding: EdgeInsets.only(left: 12.0, top: 10.0),
               child: Text("${_mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].description}"),
             ),
-
+            wayPointImage
           ],
         ),
     );
   }
 
 
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text("${_mapTrack.trackService.gpxFileData.trackName}"),
-      ),
-      body: Column(
-        children: <Widget>[
-          _mapTrack,
-        ],
-      ),
+  Widget get wayPointImage {
+    if (_mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].image == null) {
+      return Container();
+    } else {
+      List<String> img = _mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].image;
+      List<String> imgPath = [];
+      img.map((String i) {
+        imgPath.add(_mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].filePath + i);
+      }).toList(growable: true);
+          //_mapTrack.trackService.gpxFileData.wayPoints[openWayPoint].filePath + img;
+
+      //ImageProvider imageProvider = FileImage(File(imgPath));
+      return Container(
+        //alignment: Alignment.centerRight,
+        margin: EdgeInsetsDirectional.only(start: 12.0, top: 12.0),
+        width: double.maxFinite,
+        height: 80.0,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: imgPath.map((f) => InkWell(
+            onTap: () {
+              _imageOverlay = imageOverlay(FileImage(File(f)));
+              Overlay.of(context).insert(_imageOverlay);
+            },
+            child: Container(
+              margin: EdgeInsetsDirectional.only(end: 4.0),
+              width: 80.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                color: Colors.green,
+                image: DecorationImage(
+                    image: FileImage(File(f)),
+                  fit: BoxFit.contain
+              ),
+            ),
+            ))).toList(),
+        ),
+      );
+    }
+  }
+
+
+
+  OverlayEntry imageOverlay(FileImage img) {
+    final RenderBox renderBox = context.findRenderObject();
+    var size = renderBox.size;
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        left: 0.0,
+        top: 0.0,
+        width: size.width,
+        child: Container(
+          height: size.height,
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            color: Colors.red,
+            image: DecorationImage(
+                image: img,
+                fit: BoxFit.contain,
+            )
+          ),
+        ),
+      )
     );
+  }
+
+
+  /// Use [WillPopScope] to close [OverlayEntry] [imageOverlay]
+  ///
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _requestPop,
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text("${_mapTrack.trackService.gpxFileData.trackName}"),
+        ),
+        body: Column(
+          children: <Widget>[
+            _mapTrack,
+          ],
+        ),
+      )
+    );
+//    return Scaffold(
+//
+//      key: _scaffoldKey,
+//      appBar: AppBar(
+//        title: Text("${_mapTrack.trackService.gpxFileData.trackName}"),
+//      ),
+//      body: Column(
+//        children: <Widget>[
+//          _mapTrack,
+//        ],
+//      ),
+//    );
+  }
+
+  Future<bool> _requestPop() {
+    print("_requestPop()");
+    if (_imageOverlay == null) {
+
+      Navigator.of(context).pop();
+      return Future.value(false);
+
+    } else {
+      _imageOverlay.remove();
+      _imageOverlay = null;
+      return Future.value(false);
+    }
   }
 
 
