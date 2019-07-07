@@ -15,6 +15,7 @@ import 'package:geolocator/geolocator.dart';
 import '../fileIO/directory_list.dart';
 import '../track/track_service.dart';
 import 'map_statusLayer.dart';
+import 'map_scaleElement.dart';
 import '../fileIO/local_file.dart';
 
 import '../track/geoLocationService.dart';
@@ -50,6 +51,7 @@ class MapTrackState extends State<MapTrack> {
   // MapController and plugin layer
   MapController _mapController = MapController();
   MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...");
+  MapScaleElement _mapScaleElement = MapScaleElement();
 
   LatLng get startPos => widget.trackService.getTrackStart();
 
@@ -233,6 +235,7 @@ class MapTrackState extends State<MapTrack> {
           onPositionChanged: _handlePositionChange,
           plugins: [
             _mapStatusLayer,
+            _mapScaleElement,
           ],
         ),
         layers: [
@@ -267,6 +270,9 @@ class MapTrackState extends State<MapTrack> {
             //_mapStatusLayer.zoom["zoom"] = 12,
             //locationOn: false,
             //offline: false,
+          ),
+          MapScaleElementOptions(
+            streamController: streamController
           ),
         ]
       ),
