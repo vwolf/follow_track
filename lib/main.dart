@@ -388,14 +388,22 @@ class _MainPageState extends State<MainPage> {
             ListTile(
               title: Text("Gpx file directory"),
               subtitle: Text(_gpxFileDirectoryString),
-              trailing: Icon(Icons.edit),
-              onTap: setGpxFileDirectory,
+              trailing: IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () {
+                    setGpxFileDirectory();
+                  }
+              )
             ),
             ListTile(
               title: (Text("Gpx file on SD card")),
               subtitle: Settings.settings.externalSDCard != null ? Text("${Settings.settings.externalSDCard}/Tracks/") : Text("No SDCard"),
-              trailing: Icon(Icons.edit),
-              onTap: getSDCardFiles,
+              trailing: IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () {
+                    getSDCardFiles();
+                  },
+              ),
             ),
             ListTile(
               title: Text("Track Offset Distance Notification"),
@@ -507,10 +515,17 @@ class _MainPageState extends State<MainPage> {
     print("handleTap()");
     TrackService trackService = TrackService(_tracks[index]);
 
-    await trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString);
-    String wayPointsDirectory =  path.dirname(_tracks[index].gpxFilePath) + "/${trackService.gpxFileData.trackName}/";
-    trackService.track.offlineMapPath = Settings.settings.pathToMapTiles;
-    await trackService.getTrackWayPoints(wayPointsDirectory, loadMapCallback);
+    await trackService.getTrack(_tracks[index].gpxFilePath, _gpxFileDirectoryString).then((r) {
+      String wayPointsDirectory =  path.dirname(_tracks[index].gpxFilePath) + "/${trackService.gpxFileData.trackName}/";
+      trackService.track.offlineMapPath = Settings.settings.pathToMapTiles;
+      trackService.getTrackWayPoints(wayPointsDirectory, loadMapCallback).then((a) { print("getTrackPosints end");});
+    }).whenComplete( () {
+      print("complete");
+    });
+    //;
+//    String wayPointsDirectory =  path.dirname(_tracks[index].gpxFilePath) + "/${trackService.gpxFileData.trackName}/";
+//    trackService.track.offlineMapPath = Settings.settings.pathToMapTiles;
+//    await trackService.getTrackWayPoints(wayPointsDirectory, loadMapCallback);
   }
 
 

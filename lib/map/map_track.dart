@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong/latlong.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -51,7 +53,9 @@ class MapTrackState extends State<MapTrack> {
   // MapController and plugin layer
   MapController _mapController = MapController();
   MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...");
-  MapScaleElement _mapScaleElement = MapScaleElement();
+  MapScaleElement _mapScaleElement = MapScaleElement(100.0, "");
+
+  //int scaleWidth;
 
   LatLng get startPos => widget.trackService.getTrackStart();
 
@@ -74,7 +78,13 @@ class MapTrackState extends State<MapTrack> {
     streamInit();
     setMapPath = getMapPath;
     _mapStatusLayer.status = "Position Off / Online Map / 13";
+    //_mapScaleElement.scaleText = "new";
+  }
 
+  @override
+  void didUpdateWidget(Widget oldWidget) {
+
+    print("didUpdataWidget in MapTrack");
   }
 
   @override
@@ -130,12 +140,13 @@ class MapTrackState extends State<MapTrack> {
             setState(() {
 
             });
+//            calculateScale();
             break;
 
           case "zoom_out" :
             _mapController.move(_mapController.center, _mapController.zoom - 1.0);
             setState(() {
-
+              //calculateScale();
             });
             break;
 
@@ -143,6 +154,7 @@ class MapTrackState extends State<MapTrack> {
         break;
     }
   }
+
 
   /// Switch between using online map and offline maps.
   /// Location to offline maps set?
@@ -233,6 +245,7 @@ class MapTrackState extends State<MapTrack> {
           onTap: _handleTap,
           onLongPress: _handleLongPress,
           onPositionChanged: _handlePositionChange,
+
           plugins: [
             _mapStatusLayer,
             _mapScaleElement,
@@ -272,7 +285,13 @@ class MapTrackState extends State<MapTrack> {
             //offline: false,
           ),
           MapScaleElementOptions(
-            streamController: streamController
+            streamController: streamController,
+            mapState: MapState(
+                MapOptions(
+                  zoom: _mapController.ready == false ? 13 : _mapController.zoom,
+                  center: _mapController.ready == false ? startPos : _mapController.center,
+                )
+            )
           ),
         ]
       ),

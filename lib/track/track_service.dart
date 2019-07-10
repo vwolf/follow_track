@@ -192,13 +192,15 @@ class TrackService {
         }
       }).onDone(() {
         if (wayPointsFiles.length > 0) {
-          parseWpts(wayPointsFiles, callBack, wayPointDirectory);
+          parseWpts(wayPointsFiles, callBack, wayPointDirectory).then((r) {
+            callBack(this);
+          });
         } else {
-          callBack(this);
+          //callBack(this);
         }
       });
     } else {
-      callBack(this);
+      //callBack(this);
     }
   }
 
@@ -225,7 +227,7 @@ class TrackService {
           gpxFileData.addWaypoint(newWaypoints);
         });
       }
-      callback(this);
+      //callback(this);
     }
   }
 }
