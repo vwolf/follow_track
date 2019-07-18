@@ -56,7 +56,7 @@ class MapScale extends StatefulWidget {
 ///
 class MapScaleState extends State<MapScale> {
 
-  MediaQueryData _mediaQueryData;
+  //MediaQueryData _mediaQueryData;
 
   String _scaleText = "?";
   double _scaleWidth = 222;
@@ -69,7 +69,7 @@ class MapScaleState extends State<MapScale> {
 
   @override
   void didUpdateWidget(Widget oldWidget) {
-
+    super.didUpdateWidget(oldWidget);
     calculateScale();
   }
 
@@ -124,14 +124,14 @@ class MapScaleState extends State<MapScale> {
 
       var resolution = 156543.03  * cos(widget.mapState.center.latitude * pi / 180) / ( pow(2,  widget.mapState.zoom ));
       var scale = screenDpi * 1 / 0.0254 * resolution;
-      print("resolution: $resolution, scale: $scale, in meter: ${scale / 100} at zoom: ${widget.mapState.zoom}");
+      //print("resolution: $resolution, scale: $scale, in meter: ${scale / 100} at zoom: ${widget.mapState.zoom}");
 
       // how many pixel, pro meter, how many meter pro pixel
       var pixels = (scale / 100) / resolution;
       // 1 meter = x pixel
       var pixelProMeter = (pixels/ (scale / 100));
       var meterProPixel = 1 / pixelProMeter;
-      print("pixels: $pixels, pixelProMeter: ${pixelProMeter}, meterProPixel: $meterProPixel");
+      //print("pixels: $pixels, pixelProMeter: $pixelProMeter, meterProPixel: $meterProPixel");
 
       // this is the distance for 50% of screen width
       var maxScaleWidth = meterProPixel * (mediaWidth * 0.5);
@@ -153,7 +153,7 @@ class MapScaleState extends State<MapScale> {
             //_scaleElement;
           });
 
-          print("scaleText: $_scaleText, scaleWidth: $_scaleWidth");
+//          print("scaleText: $_scaleText, scaleWidth: $_scaleWidth");
           return eWidth;
         }
       }
@@ -183,7 +183,7 @@ class ScaleElementPainter extends CustomPainter {
     final Paint paint = Paint();
 
 
-    var center = Offset(size.width / 2, size.height / 2);
+    //var center = Offset(size.width / 2, size.height / 2);
     paint.color = Colors.lightBlue;
     canvas.drawRect(Rect.fromPoints(Offset(0.0, 0.0), Offset(size.width, size.height)), paint);
 

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as path;
-import 'package:file_picker/file_picker.dart';
+
 import 'package:latlong/latlong.dart';
 
 import '../track/track_service.dart';
@@ -30,10 +29,10 @@ class MapPageState extends State<MapPage> {
   GlobalKey mapPageKey = GlobalKey();
   /// communication with map via streams
   StreamController<TrackPageStreamMsg> _streamController = StreamController.broadcast();
-  String _gpxFilePath;
+  //String _gpxFilePath;
   MapTrack get _mapTrack => MapTrack(widget.trackService, _streamController);
 
-  bool _offlineMapDialog = false;
+  //bool _offlineMapDialog = false;
   String _mapPath;
 
   /// callback function used as a closure
@@ -123,7 +122,7 @@ class MapPageState extends State<MapPage> {
       _persistentBottomSheetController = _scaffoldKey.currentState.showBottomSheet((BuildContext context) {
         return _wayPointSheet;
       });
-      LatLng wayPointLatLng =_mapTrack.trackService.gpxFileData.wayPoints[wayPointIndex].location;
+      //LatLng wayPointLatLng =_mapTrack.trackService.gpxFileData.wayPoints[wayPointIndex].location;
 
     } else {
       _persistentBottomSheetController.close();

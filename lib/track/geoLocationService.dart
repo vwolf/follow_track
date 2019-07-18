@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong/latlong.dart';
 
+/// Service to subscribe / unsubscribe to stream of positions
+///
 class GeoLocationService {
 
   GeolocationStatus status = GeolocationStatus.unknown;
@@ -20,13 +21,16 @@ class GeoLocationService {
   GeoLocationService._();
   static final GeoLocationService gls = GeoLocationService._();
 
-  GeolocationStatus _geolocationStatus;
+  //GeolocationStatus _geolocationStatus;
 
   cleanUp() {
     _positionStream.cancel();
     trackerStream.close();
   }
 
+  /// Subscribe to position stream
+  ///
+  /// [streamToParent]
   subscribeToPositionStream( [StreamController streamToParent]) {
     trackerStream = streamToParent;
     _positionStream = geolocator.getPositionStream(locationOptions)
@@ -42,23 +46,20 @@ class GeoLocationService {
     });
   }
 
-  unsubcribeToPositionStream() {
+  /// Unsubscribe from postion stream
+  ///
+  unsubscribeToPositionStream() {
     if (_positionStream != null ) {
       _positionStream.cancel();
     }
   }
 
   /// Get distance between coordinates
+  ///
+  /// [coord1] start position
+  /// [coord2] end position
   Future<double> getDistanceBetweenCoords(LatLng coord1, LatLng coord2) async {
-    double distanceInMeters = 1.0;
     var dist = await Geolocator().distanceBetween(coord1.latitude, coord1.longitude, coord2.latitude, coord2.longitude);
     return dist;
-    print("dist: $dist");
-//    .then((result) {
-//      distanceInMeters = result;
-//      return distanceInMeters;
-//    });
-
-   // return distanceInMeters;
   }
 }

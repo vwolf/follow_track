@@ -28,7 +28,7 @@ class LocalFile {
   Future<File> writeContent(String fileName, String contents) async {
     _fileName = fileName;
     final file = await _localFile;
-    bool fileExist = file.existsSync();
+  //  bool fileExist = file.existsSync();
 
     return file.writeAsString(contents);
   }
@@ -67,7 +67,7 @@ class LocalFile {
     _fileName = fileName;
     try {
       final file = await _localFile;
-      bool fileExist = file.existsSync();
+      //bool fileExist = file.existsSync();
       file.writeAsStringSync(jsonEncode(content));
     } on FileSystemException  {
       return "Write Error";

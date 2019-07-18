@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -28,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Follow Track',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         brightness: Brightness.dark,
@@ -106,6 +105,7 @@ class _MainPageState extends State<MainPage> {
           // build default path
           String p = "${Settings.settings.externalSDCard}/${Settings.settings.defaultTrackDirectory}";
           print(p);
+          Settings.settings.pathToMapTiles = "${Settings.settings.externalSDCard}/${Settings.settings.pathToMapTiles}";
           searchSDCard().then((r) {
             if (r == true) {
               print("SEARCH SDCARD!!");
@@ -197,6 +197,7 @@ class _MainPageState extends State<MainPage> {
   /// Add all gpx files in [directoryPath] to [trackPath].
   /// Then call [loadTrackMetaData] to read gpx files.
   ///
+  /// [directoryPath]
   void findTracks(String directoryPath) {
     List<String> trackPath = [];
     Directory(directoryPath).list(recursive: true, followLinks: false)
@@ -208,32 +209,40 @@ class _MainPageState extends State<MainPage> {
           }
         })
         .onDone( () => {
-          trackPath.length == 0 ? searchSDCard() : this.loadTrackMetaData(trackPath)
+          //trackPath.length == 0 ? searchSDCard() : this.loadTrackMetaData(trackPath)
+          this.loadTrackMetaData(trackPath)
     });
   }
 
 
 
   Future searchSDCard() async {
+    print("searchSDCard");
     switch(
       await showDialog(
           context: context,
-        builder: (BuildContext context) {
+          builder: (BuildContext context) {
             return SimpleDialog(
               title: Text('Search on SD Card?'),
               children: <Widget>[
                 SimpleDialogOption(
                   child: Text("Yes"),
-                  onPressed: () {Navigator.pop(context, "Yes");} ),
+                  onPressed: () {
+                    Navigator.pop(context, "Yes");
+                    //Navigator.pop(context, "No");
+                  } ),
                 SimpleDialogOption(
                   child: Text("No"),
-                  onPressed: () {Navigator.pop(context, "No");} ),
+                  onPressed: () {
+                    Navigator.pop(context, "No");
+                  } ),
               ],
             );
-        },
-      )
+          },
+        )
     )  {
       case "Yes" :
+        //Navigator.pop(context);
         return true;
         break;
 
@@ -242,7 +251,7 @@ class _MainPageState extends State<MainPage> {
         break;
     }
 
-    return false;
+    //return false;
   }
 
 
@@ -251,7 +260,7 @@ class _MainPageState extends State<MainPage> {
   void setGpxFileDirectory() async {
     await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
     Directory externalStorageDir = await getExternalStorageDirectory();
-    Directory absolutExternal = externalStorageDir.absolute;
+  //  Directory absolutExternal = externalStorageDir.absolute;
     externalStorageDir.list(recursive: true, followLinks: false)
     .listen((FileSystemEntity entity) {
       print(entity.path);
@@ -263,7 +272,7 @@ class _MainPageState extends State<MainPage> {
         String dirPath = path.dirname(pathToTrack);
         List<String> dirPathSplit = path.dirname(pathToTrack).split('/');
         if (dirPathSplit.length > 0) {
-          String filePath = dirPathSplit.removeLast();
+          //String filePath = dirPathSplit.removeLast();
           //dirPath = dirPathSplit.join('/');
         }
         print (dirPath);
@@ -274,7 +283,7 @@ class _MainPageState extends State<MainPage> {
         });
       }
     } on Platform catch(e) {
-
+      print(e);
     }
   }
 
@@ -296,6 +305,9 @@ class _MainPageState extends State<MainPage> {
 
 
   }
+
+  /// ToDo
+  void getOfflineMapTilesDirectory() {}
 
 
   /// Set the distance offset from track when notification is triggered
@@ -406,6 +418,16 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
             ListTile(
+              title: Text("Offline Map Tiles"),
+              subtitle: Settings.settings.externalSDCard != null ? Text("${Settings.settings.externalSDCard}/OfflineMapTiles") : Text("No SDCard"),
+              trailing: IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () {
+                  getOfflineMapTilesDirectory();
+                },
+              ),
+            ),
+            ListTile(
               title: Text("Track Offset Distance Notification"),
               subtitle: Text("${Settings.settings.distanceToTrackAlert} meter"),
               trailing: IconButton(
@@ -485,6 +507,9 @@ class _MainPageState extends State<MainPage> {
   }
 
 
+  /// Show Offline icon if [offlineMapPath] is set
+  ///
+  /// [index]
   Widget _offlineIcon(int index) {
     if (_tracks[index].offlineMapPath != null) {
       return Icon(Icons.map);
@@ -529,24 +554,6 @@ class _MainPageState extends State<MainPage> {
   }
 
 
-  Widget get _basicList {
-    return ListView(
-      children: <Widget>[
-        ListTile(
-          leading: Icon(Icons.map),
-          title: Text('Map'),
-        ),
-        ListTile(
-          leading: Icon(Icons.photo_album),
-          title: Text('Album'),
-        ),
-        ListTile(
-          leading: Icon(Icons.phone),
-          title: Text('Phone'),
-        ),
-      ],
-    );
-  }
 
   ///
   String _batteryLevel = "Unknown battery level";

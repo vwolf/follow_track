@@ -26,7 +26,7 @@ class MapStatusLayer implements MapPlugin {
 
   Map<String, int> zoom = { "zoom_min": 1, "zoom_max": 1, "zoom": 1};
 
-  MapStatusLayer(bool this.locationOn, bool this.offline, String this.status);
+  MapStatusLayer(this.locationOn, this.offline, this.status);
 
 
   @override
@@ -69,8 +69,8 @@ class MapStatusLayer implements MapPlugin {
     updateStatusText();
   }
 
-  zoomNotification(int zoom_value) {
-    this.zoom['zoom'] = zoom_value;
+  zoomNotification(int zoomValue) {
+    this.zoom['zoom'] = zoomValue;
 
     updateStatusText();
 
@@ -196,8 +196,8 @@ class MapStatusState extends State<MapStatus> {
 
   updateStatusText(String newText) {
     print("change the text");
-    //widget.status = newText
-;    statusText = newText;
+    //widget.status = newText;
+    statusText = newText;
     //callback(newText);
   }
 }

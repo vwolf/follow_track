@@ -1,4 +1,4 @@
-import 'package:path_provider/path_provider.dart';
+/// App settings
 
 class Settings {
 
@@ -9,7 +9,7 @@ class Settings {
 
   String pathToTracks = "/Tracks";
   int distanceToTrackAlert = 100;
-  String pathToMapTiles = "";
+  String pathToMapTiles = "OfflineMapTiles";
   String externalSDCard;
 
   Settings._();

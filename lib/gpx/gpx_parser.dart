@@ -61,7 +61,7 @@ class GpxParser {
 
     // gps coordinates
     List<GpxCoords> trkList = List();
-    List<LatLng> pointsList = List();
+    //List<LatLng> pointsList = List();
 
     if (documentType == GpxDocumentType.gpxx) {
       Iterable<xml.XmlElement> wpt = document.findAllElements('wpt');

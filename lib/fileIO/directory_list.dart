@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 
@@ -132,6 +131,7 @@ class DirectoryListState extends State<DirectoryList> {
 
     });
 
+    return directoryContent;
 //    await Directory(directoryPath).list(recursive: false, followLinks: false)
 //    .listen((FileSystemEntity entity) {
 //      directoryContent.add(entity.path);
@@ -187,6 +187,7 @@ class DirectoryListState extends State<DirectoryList> {
         return false;
       }
     });
-
+    return false;
   }
+
 }

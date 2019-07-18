@@ -16,7 +16,7 @@ class TrackList extends StatefulWidget {
 
 class TrackListState extends State<TrackList> {
 
-  List<Track> _tracks = [];
+  //List<Track> _tracks = [];
 
   Future<List<Track>> getTracks() async {
     return widget.tracks;
@@ -28,11 +28,11 @@ class TrackListState extends State<TrackList> {
   }
 
 
-  _buildTrackList(context) {
+  Widget _buildTrackList(context) {
     return ListView.builder(
       itemCount: widget.tracks.length,
       itemBuilder: (BuildContext context, int index) {
-        ListTile(
+        return ListTile(
           contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           leading: Container(
             padding: EdgeInsets.only(right: 10.0),
@@ -69,5 +69,6 @@ class TrackListState extends State<TrackList> {
 
     );
   }
+
 }
 

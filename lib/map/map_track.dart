@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,7 +81,7 @@ class MapTrackState extends State<MapTrack> {
 
   @override
   void didUpdateWidget(Widget oldWidget) {
-
+    super.didUpdateWidget(oldWidget);
     print("didUpdataWidget in MapTrack");
   }
 
@@ -211,7 +209,7 @@ class MapTrackState extends State<MapTrack> {
       });
       GeoLocationService.gls.subscribeToPositionStream(geoLocationStreamController);
     } else {
-      GeoLocationService.gls.unsubcribeToPositionStream();
+      GeoLocationService.gls.unsubscribeToPositionStream();
 
     }
   }

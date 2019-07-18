@@ -53,7 +53,7 @@ class ReadFile {
 
       //return wayPointsFiles;
     });
-    //return wayPointsFiles;
+    return wayPointsFiles;
   }
 
   readWayPoints(List<String> pathList) {

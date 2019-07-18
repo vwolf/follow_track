@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:latlong/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart' as path;
-import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../models/track.dart';
 import '../models/track_coord.dart';
@@ -16,11 +14,11 @@ import '../gpx/gpxx_parser.dart';
 import '../gpx/read_file.dart';
 import 'geoLocationService.dart';
 
-import '../fileIO/local_file.dart';
 
 /// Service used by [Map]
 class TrackService {
   final Track track;
+
   TrackService(this.track);
 
   GpxFileData gpxFileData = GpxFileData();
@@ -91,6 +89,7 @@ class TrackService {
     } else {
       print("getTrackStart gpxFileData.gpxLatLng length = 0");
     }
+    return null;
   }
 
   /// Return the distance beteen two track points
@@ -102,6 +101,7 @@ class TrackService {
   }
 
   /// Return length of whole track
+  ///
   getTrackDistance() async {
     double totalDistance = 0;
     double totalDistanceGeo = 0;
@@ -124,27 +124,27 @@ class TrackService {
   /// 1. Try gpx file ToDo
   /// 2. Calculate using parsed gpx file
   getTrackBoundingCoors() {
-    double lat_min = double.infinity;
-    double lat_max = 0.0;
-    double lon_min = double.infinity;
-    double lon_max = 0.0;
+    double latMin = double.infinity;
+    double latMax = 0.0;
+    double lonMin = double.infinity;
+    double lonMax = 0.0;
 
     for (LatLng waypoints in gpxFileData.gpxLatlng) {
-      lat_min = min(lat_min, waypoints.latitude);
-      lat_max = max(lat_max, waypoints.latitude);
-      lon_min = min(lon_min, waypoints.longitude);
-      lon_max = max(lon_max, waypoints.longitude);
+      latMin = min(latMin, waypoints.latitude);
+      latMax = max(latMax, waypoints.latitude);
+      lonMin = min(lonMin, waypoints.longitude);
+      lonMax = max(lonMax, waypoints.longitude);
     }
 
     print(
-        "track ${track.name} boundaris are $lat_min, $lat_max, $lon_min, $lon_max");
+        "track ${track.name} boundaris are $latMin, $latMax, $lonMin, $lonMax");
 
     /// text latlon to tiles
     var n = pow(2, 13);
-    var xTile = n * ((lon_min + 180.0) / 360);
-    var lat_min_rad = lat_min / 180 * pi;
+    var xTile = n * ((lonMin + 180.0) / 360);
+    var latMinRad = latMin / 180 * pi;
     var yTile =
-        n * (1.0 - (log(tan(lat_min_rad) + (1 / cos(lat_min_rad))) / pi)) / 2;
+        n * (1.0 - (log(tan(latMinRad) + (1 / cos(latMinRad))) / pi)) / 2;
     print(xTile.toInt());
     print(yTile.toInt());
   }
@@ -196,16 +196,16 @@ class TrackService {
             callBack(this);
           });
         } else {
-          //callBack(this);
+          callBack(this);
         }
       });
     } else {
-      //callBack(this);
+      callBack(this);
     }
   }
 
 
-  parseSingleWpts(String wayPointFilePath) async {
+  parseSingleWpt(String wayPointFilePath) async {
     await ReadFile().readFile(wayPointFilePath)
     .then((contents) {
       List<Waypoint> newWaypoints = new GpxxParser(contents).parseData();
@@ -214,6 +214,9 @@ class TrackService {
 
   }
 
+  /// Parse list of waypoint files
+  ///
+  /// [waypointFiles]
   Future parseWpts(List<String> wayPointsFiles, callback, waypointsDirectory) async {
     if (wayPointsFiles.length > 0) {
       for (var i = 0; i < wayPointsFiles.length; i++) {
