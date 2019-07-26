@@ -116,7 +116,7 @@ class MapPageState extends State<MapPage> {
 
 
 
-  openWayPointBottomSheet(wayPointIndex) {
+  openWayPointBottomSheet(wayPointIndex) async {
     if (_persistentBottomSheetController == null) {
       openWayPoint = wayPointIndex;
       _persistentBottomSheetController = _scaffoldKey.currentState.showBottomSheet((BuildContext context) {
@@ -126,6 +126,7 @@ class MapPageState extends State<MapPage> {
 
     } else {
       _persistentBottomSheetController.close();
+      await _persistentBottomSheetController.closed;
       _persistentBottomSheetController = null;
     }
 
@@ -219,7 +220,7 @@ class MapPageState extends State<MapPage> {
               width: 80.0,
               decoration: BoxDecoration(
                 shape: BoxShape.rectangle,
-                color: Colors.green,
+                color: Colors.blueGrey,
                 image: DecorationImage(
                     image: FileImage(File(f)),
                   fit: BoxFit.contain
@@ -246,7 +247,7 @@ class MapPageState extends State<MapPage> {
           height: size.height,
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
-            color: Colors.red,
+            color: Colors.blueGrey,
             image: DecorationImage(
                 image: img,
                 fit: BoxFit.contain,

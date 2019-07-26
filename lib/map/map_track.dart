@@ -265,7 +265,7 @@ class MapTrackState extends State<MapTrack> {
                 color: Colors.blueAccent,
               )
             ],
-            //onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)
+            onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)
           ),
           MarkerLayerOptions(
             markers: markerList,
@@ -335,7 +335,7 @@ class MapTrackState extends State<MapTrack> {
     return ml;
   }
 
-  /// Return current positon a marker
+  /// Return current positon as marker
   ///
   List<Marker> get gpsPositionList => makeGpsPositionList();
 
@@ -402,9 +402,16 @@ class MapTrackState extends State<MapTrack> {
       case "Shop" :
         return  Icons.shopping_cart;
         break;
+      case "Info" :
+        return Icons.info;
+        break;
+      case "Food" :
+        return Icons.local_dining;
+        break;
+      default:
+        return Icons.home;
     }
 
-    return Icons.info;
   }
 
 
@@ -433,7 +440,8 @@ class MapTrackState extends State<MapTrack> {
   }
 
   void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) {
-    print("_onTap $msg + Polyline $polyline + LatLng $latlng + ploylintPoint $polylinePoint");
+    print("_onTap $msg + Polyline $polyline + LatLng $latlng + ploylinePoint $polylinePoint");
+    trackService.getDistanceFromStart(polylinePoint);
   }
 
   // Tap on marker on maps.

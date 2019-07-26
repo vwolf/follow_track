@@ -21,6 +21,7 @@ import 'fileIO/settings.dart';
 
 void main() => runApp(MyApp());
 
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -39,8 +40,9 @@ class MyApp extends StatelessWidget {
 
 typedef LoadMap = void Function(TrackService trackService);
 
-/// This is the start page. Display list of all available gpx tracks in [TrackList].
-///
+/// This is the start page.
+/// Display list of all available gpx tracks in [TrackList].
+/// SD card insert then option to search on card
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
 
@@ -85,7 +87,6 @@ class _MainPageState extends State<MainPage> {
   ///
   void setDirectory() async {
 
-    //var permission = await requestPermission();
     var permission = await RequestPermissions().requestPermission(PermissionGroup.storage);
     if (permission) {
       await setStoragePath().then((result) {
@@ -103,13 +104,13 @@ class _MainPageState extends State<MainPage> {
         print(Settings.settings.pathTracksInternal);
         if (Settings.settings.externalSDCard != null) {
           // build default path
-          String p = "${Settings.settings.externalSDCard}/${Settings.settings.defaultTrackDirectory}";
-          print(p);
+          String trackDirectory = "${Settings.settings.externalSDCard}/${Settings.settings.defaultTrackDirectory}";
+          print(trackDirectory);
           Settings.settings.pathToMapTiles = "${Settings.settings.externalSDCard}/${Settings.settings.pathToMapTiles}";
           searchSDCard().then((r) {
             if (r == true) {
               print("SEARCH SDCARD!!");
-              findTracks(p);
+              findTracks(trackDirectory);
             }
           });
 
@@ -171,9 +172,9 @@ class _MainPageState extends State<MainPage> {
 
 
 
-
-
+  /// ToDo Feature addTrack
   void addTrack() {}
+
 
   /// This is just for testing
   void writeSettings() async {
@@ -214,8 +215,8 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-
-
+  /// Show [SimpleDialogOption] to search on SD card
+  /// Return [Future] [bool]
   Future searchSDCard() async {
     print("searchSDCard");
     switch(
@@ -229,7 +230,6 @@ class _MainPageState extends State<MainPage> {
                   child: Text("Yes"),
                   onPressed: () {
                     Navigator.pop(context, "Yes");
-                    //Navigator.pop(context, "No");
                   } ),
                 SimpleDialogOption(
                   child: Text("No"),
@@ -242,7 +242,6 @@ class _MainPageState extends State<MainPage> {
         )
     )  {
       case "Yes" :
-        //Navigator.pop(context);
         return true;
         break;
 
@@ -250,8 +249,6 @@ class _MainPageState extends State<MainPage> {
         return false;
         break;
     }
-
-    //return false;
   }
 
 

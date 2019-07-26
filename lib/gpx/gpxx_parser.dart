@@ -68,7 +68,7 @@ class GpxxParser {
                 Iterable<xml.XmlElement> imageNodes = wf.findAllElements("gpxx:Images");
                 newWaypoint.image = [];
                 imageNodes.forEach((xml.XmlElement image) {
-                  print("${image.name}:  ${getValue(imageNodes)}");
+                  print("${image.name}:  ${image.firstChild.toString()}");
                   newWaypoint.image.add(image.firstChild.toString());
                 });
               });

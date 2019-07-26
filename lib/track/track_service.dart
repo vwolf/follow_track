@@ -120,6 +120,22 @@ class TrackService {
     trackLength = totalDistanceGeo;
   }
 
+  /// Return the distance from polyline point to start of track
+  getDistanceFromStart(int polylinePoint) async {
+    double totalDistance = 0;
+
+    for (var i = 0; i < polylinePoint -1; i++) {
+      totalDistance += await Geolocator().distanceBetween(
+          gpxFileData.gpxLatlng[i].latitude,
+          gpxFileData.gpxLatlng[i].longitude,
+          gpxFileData.gpxLatlng[i + 1].latitude,
+          gpxFileData.gpxLatlng[i + 1].longitude);
+    }
+
+    print("Distance from track start to point $polylinePoint is $totalDistance");
+  }
+
+
   /// Get the boundaries of track
   /// 1. Try gpx file ToDo
   /// 2. Calculate using parsed gpx file
