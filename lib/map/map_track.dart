@@ -16,6 +16,8 @@ import '../fileIO/directory_list.dart';
 import '../track/track_service.dart';
 import 'map_statusLayer.dart';
 import 'map_scaleElement.dart';
+import 'map_infoElement.dart';
+import 'map_pointInfo.dart';
 import '../fileIO/local_file.dart';
 
 import '../track/geoLocationService.dart';
@@ -48,11 +50,24 @@ class MapTrackState extends State<MapTrack> {
 
   MapTrackState(this.trackService, this.streamController);
 
+  LatLng _circlePosition = LatLng(0.0, 0.0);
+
   // MapController and plugin layer
   MapController _mapController = MapController();
   MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...");
   MapScaleElement _mapScaleElement = MapScaleElement(100.0, "");
+  MapInfoElement _mapInfoElement = MapInfoElement(
+      point: LatLng(0.0, 0.0),
+      color: Colors.blue.withOpacity(0.8),
+      borderStrokeWidth: 1.0,
+      useRadiusInMeter: true,
+      size: Size(100.0, 50.0),
+  );
 
+  String _infoText = "_infoText";
+  bool _infoTextDisplay = false;
+
+  //MapInfoElement _mapInfoLayer = MapInfoElement("Content");
   //int scaleWidth;
 
   LatLng get startPos => widget.trackService.getTrackStart();
@@ -62,6 +77,7 @@ class MapTrackState extends State<MapTrack> {
   bool _location = false;
 
   LatLng _currentPosition;
+
 
   /// callback function used as a closure
   MapPathCallback setMapPath;
@@ -245,6 +261,7 @@ class MapTrackState extends State<MapTrack> {
           onPositionChanged: _handlePositionChange,
 
           plugins: [
+            _mapInfoElement,
             _mapStatusLayer,
             _mapScaleElement,
           ],
@@ -267,6 +284,9 @@ class MapTrackState extends State<MapTrack> {
             ],
             onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)
           ),
+          MapInfoLayerOptions(
+            mapInfoElements: mapInfoElements,
+          ),
           MarkerLayerOptions(
             markers: markerList,
           ),
@@ -276,6 +296,16 @@ class MapTrackState extends State<MapTrack> {
           MarkerLayerOptions(
             markers: wayPointsList,
           ),
+//          CircleLayerOptions(
+//            circles: circleMarkers,
+//          ),
+//          MapPointInfoLayerOptions(
+//            mapPointInfos: mapPointInfo,
+//          ),
+//          MapInfoLayerOptions(
+//            mapInfoElements: _infoTextDisplay ? mapInfoElements : mapInfoElements,
+//          ),
+
           MapStatusLayerOptions(
             streamController: streamController,
             //_mapStatusLayer.zoom["zoom"] = 12,
@@ -291,6 +321,7 @@ class MapTrackState extends State<MapTrack> {
                 )
             )
           ),
+
         ]
       ),
     );
@@ -396,6 +427,52 @@ class MapTrackState extends State<MapTrack> {
     return ml;
   }
 
+  List<CircleMarker> get circleMarkers => makeCircleMarkers();
+
+  List<CircleMarker> makeCircleMarkers() {
+    var circleMarkers = <CircleMarker>[
+      CircleMarker(
+        point: _circlePosition,
+        color: Colors.blue.withOpacity(0.7),
+        borderStrokeWidth: 2.0,
+        useRadiusInMeter: true,
+        radius: 100
+      ),
+    ];
+    return circleMarkers;
+  }
+
+  List<MapPointInfo> get mapPointInfo => makeMapPointInfo();
+
+  List<MapPointInfo> makeMapPointInfo() {
+    var mapPointInfo = <MapPointInfo>[
+      MapPointInfo(
+          point: _circlePosition,
+          color: Colors.blue.withOpacity(0.7),
+          borderStrokeWidth: 1.0,
+          useRadiusInMeter: true,
+          radius: 100
+      ),
+    ];
+    return mapPointInfo;
+  }
+
+  List<MapInfoElement> get mapInfoElements => makeMapInfos();
+
+  List<MapInfoElement> makeMapInfos() {
+    var mapInfoElements = <MapInfoElement>[
+      MapInfoElement(
+          point: _circlePosition,
+          color: Colors.white.withOpacity(0.8),
+          borderStrokeWidth: 1.0,
+          useRadiusInMeter: false,
+          size: Size(200.0, 50.0),
+          infoText: _infoText,
+      ),
+    ];
+    return mapInfoElements;
+  }
+
 
   IconData getTypeIcon(String type) {
     switch( type ) {
@@ -425,6 +502,14 @@ class MapTrackState extends State<MapTrack> {
       print("Index: ${dist[0]}, Distance in meter: ${dist[1]}");
     });
 
+    if (_infoTextDisplay == true) {
+      setState(() {
+        _circlePosition = LatLng(0.0, 0.0);
+        _infoTextDisplay = false;
+      });
+
+    }
+
     streamController.add(TrackPageStreamMsg("tapOnMap", latlng));
 
   }
@@ -439,10 +524,52 @@ class MapTrackState extends State<MapTrack> {
     _mapStatusLayer.zoomNotification(_mapController.zoom.toInt());
   }
 
-  void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) {
+  /// Handle tap on track polyline
+  ///
+  void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) async {
     print("_onTap $msg + Polyline $polyline + LatLng $latlng + ploylinePoint $polylinePoint");
-    trackService.getDistanceFromStart(polylinePoint);
+    var distance = await trackService.getDistanceFromStart(polylinePoint);
+
+//    MapInfoElementState mapInfoElementState = MapInfoElementState(
+//      point: _circlePosition,
+//      color: Colors.white.withOpacity(0.8),
+//      borderStrokeWidth: 1.0,
+//      useRadiusInMeter: false,
+//      size: Size(200.0, 50.0),
+//      infoText: "Distance start: ${distance.toInt().toString()} meter.",
+//    );
+//
+//    streamController.add(TrackPageStreamMsg("tapOnTrack", mapInfoElementState));
+
+
+    //distance = distance.toInt();
+    _infoTextDisplay = true;
+    setState(() {
+      _circlePosition = latlng;
+      _infoText = "Distance start: ${distance.toInt().toString()} meter.";
+    });
+
+//    showDialog(
+//        context: context,
+//        builder: (BuildContext context) {
+//          return SimpleDialog(
+//            titlePadding: EdgeInsets.only(top: 12.0, bottom: 6.0, left: 12.0),
+//            title: Text("Distance", textAlign: TextAlign.center,),
+//            contentPadding: EdgeInsets.only(left: 12.0, bottom: 6.0),
+//            children: <Widget>[
+//
+//              Text("${distance.toInt()} meter from start point."),
+//              Text ("${(trackService.trackLength - distance).toInt()} meter to end point."),
+//            ],
+//          );
+//    });
   }
+
+//  Widget get distanceWidget {
+//    return Container(
+//      child: Text("distanceWidget"),
+//    );
+//  }
 
   // Tap on marker on maps.
   /// Use coords to get in marker list (_tourGpxData.trackPoints).

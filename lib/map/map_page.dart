@@ -6,9 +6,13 @@ import 'package:latlong/latlong.dart';
 
 import '../track/track_service.dart';
 import '../map/map_track.dart';
+import 'map_infoElement.dart';
+import 'map_simple.dart';
 import '../fileIO/directory_list.dart';
 import '../fileIO/local_file.dart';
 import '../track/geoLocationService.dart';
+
+import 'package:flutter_map/flutter_map.dart';
 
 typedef MapPath = void Function(String mapPath);
 
@@ -91,6 +95,12 @@ class MapPageState extends State<MapPage> {
           _persistentBottomSheetController.close();
           _persistentBottomSheetController = null;
         }
+        break;
+
+      case "tapOnTrack" :
+        print("tap on track at ${trackingPageStreamMsg.msg}");
+        MapInfoElementState mapInfoElementState = trackingPageStreamMsg.msg as MapInfoElementState;
+
         break;
     }
 
@@ -258,24 +268,27 @@ class MapPageState extends State<MapPage> {
     );
   }
 
+  LatLng get startPos => widget.trackService.getTrackStart();
 
   /// Use [WillPopScope] to close [OverlayEntry] [imageOverlay]
   ///
   Widget build(BuildContext context) {
+
     return WillPopScope(
-      onWillPop: _requestPop,
-      child: Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
+       onWillPop: _requestPop,
+        child: Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
           title: Text("${_mapTrack.trackService.gpxFileData.trackName}"),
-        ),
-        body: Column(
-          children: <Widget>[
-            _mapTrack,
-          ],
-        ),
-      )
-    );
+          ),
+          body: Column(
+            children: <Widget>[
+              _mapTrack,
+            ]
+          ),
+        )
+   );
+  }
 //    return Scaffold(
 //
 //      key: _scaffoldKey,
@@ -288,7 +301,18 @@ class MapPageState extends State<MapPage> {
 //        ],
 //      ),
 //    );
-  }
+
+
+//  Widget get mapInfo {
+//    return Text("MapInfoText");
+//    return Container(
+//      //height: 30.0,
+//
+//      width: 200.0,
+//      color: Colors.white,
+//      child: Text("Map Info Widget"),
+//    );
+//  }
 
   Future<bool> _requestPop() {
     print("_requestPop()");

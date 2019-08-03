@@ -121,7 +121,7 @@ class TrackService {
   }
 
   /// Return the distance from polyline point to start of track
-  getDistanceFromStart(int polylinePoint) async {
+  Future<double> getDistanceFromStart(int polylinePoint) async {
     double totalDistance = 0;
 
     for (var i = 0; i < polylinePoint -1; i++) {
@@ -133,6 +133,7 @@ class TrackService {
     }
 
     print("Distance from track start to point $polylinePoint is $totalDistance");
+    return totalDistance;
   }
 
 
