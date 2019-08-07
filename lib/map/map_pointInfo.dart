@@ -177,7 +177,7 @@ class MapInfoPainter extends CustomPainter {
   }
 
   void _paintParagraph(Canvas canvas, Offset offset, String text) {
-    ParagraphBuilder paragraphBuilder = ParagraphBuilder(ParagraphStyle(textAlign: TextAlign.center, textDirection: TextDirection.ltr))
+    ParagraphBuilder paragraphBuilder = ParagraphBuilder(ParagraphStyle(textAlign: TextAlign.left, textDirection: TextDirection.ltr))
     ..addText(text);
 
     Paragraph paragraph = paragraphBuilder.build();

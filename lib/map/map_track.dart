@@ -529,6 +529,7 @@ class MapTrackState extends State<MapTrack> {
   void _onTap(String msg, Polyline polyline, LatLng latlng, int polylinePoint) async {
     print("_onTap $msg + Polyline $polyline + LatLng $latlng + ploylinePoint $polylinePoint");
     var distance = await trackService.getDistanceFromStart(polylinePoint);
+    var distanceToEnd = trackService.trackLength - distance;
 
 //    MapInfoElementState mapInfoElementState = MapInfoElementState(
 //      point: _circlePosition,
@@ -546,7 +547,8 @@ class MapTrackState extends State<MapTrack> {
     _infoTextDisplay = true;
     setState(() {
       _circlePosition = latlng;
-      _infoText = "Distance start: ${distance.toInt().toString()} meter.";
+      _infoText = "Distance start: ${distance.toInt().toString()} meter \nDistance end: ${distanceToEnd.toInt().toString()} meter";
+
     });
 
 //    showDialog(

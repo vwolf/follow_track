@@ -111,6 +111,9 @@ class _MainPageState extends State<MainPage> {
             if (r == true) {
               print("SEARCH SDCARD!!");
               findTracks(trackDirectory);
+            } else {
+              // r == null: click outside of dialog, r == false: cancel button in dialog
+              print("Search SD card canceled");
             }
           });
 
