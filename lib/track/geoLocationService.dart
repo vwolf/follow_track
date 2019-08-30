@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong/latlong.dart';
 
@@ -14,6 +15,10 @@ class GeoLocationService {
   );
 
   LatLng location = new LatLng(0.00, 0.00);
+
+  /// Save x locations in a list to display last steps
+  List<Position> lastLocations = [];
+  int positionToSave = 24;
 
   StreamSubscription<Position> _positionStream;
   StreamController trackerStream;
@@ -39,8 +44,7 @@ class GeoLocationService {
       if (_position != null) {
         if ( streamToParent != null ) {
           trackerStream.add(_position);
-        }
-        //
+        }//
 
       }
     });
@@ -62,4 +66,6 @@ class GeoLocationService {
     var dist = await Geolocator().distanceBetween(coord1.latitude, coord1.longitude, coord2.latitude, coord2.longitude);
     return dist;
   }
+
+
 }

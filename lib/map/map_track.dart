@@ -28,6 +28,9 @@ typedef MapPathCallback = void Function(String mapPath);
 
 /// Provide a map view using flutter_map package
 ///
+/// Own position: switch in [MapStatusLayer] and receive message in [streamEvent]
+/// In [switchGeolocation] subscribe to [GeoLocationService]
+///
 class MapTrack extends StatefulWidget {
   final StreamController<TrackPageStreamMsg> streamController;
   final TrackService trackService;
@@ -77,7 +80,7 @@ class MapTrackState extends State<MapTrack> {
   bool _location = false;
 
   LatLng _currentPosition;
-
+  bool _lastPositions = false;
 
   /// callback function used as a closure
   MapPathCallback setMapPath;
@@ -117,6 +120,9 @@ class MapTrackState extends State<MapTrack> {
     });
   }
 
+  ///
+  /// lastPositions_on displays last recorded positions
+  ///
   streamEvent(TrackPageStreamMsg event) {
     print("MapTrack StreamEvent ${event.type} : ${event.msg}");
     switch(event.type) {
@@ -164,6 +170,13 @@ class MapTrackState extends State<MapTrack> {
             });
             break;
 
+          case "lastPositions_on" :
+            _lastPositions = !_lastPositions;
+           // trackService.setLastLocations();
+            setState(() {
+
+            });
+            break;
         }
         break;
     }
@@ -232,7 +245,7 @@ class MapTrackState extends State<MapTrack> {
 
   /// Current geo location from [GeoLocationService] as [Position].
   /// Update [gpsPositionList] and center map on [currentPosition].
-  ///
+  /// Add [coords] to [lastPositions] in [trackService]
   onGeoLocationEvent(Position coords) {
     if (_location) {
       _currentPosition = LatLng(coords.latitude, coords.longitude);
@@ -240,6 +253,7 @@ class MapTrackState extends State<MapTrack> {
         gpsPositionList;
         _mapController.move(_currentPosition, _mapController.zoom);
         trackService.currentPosition = _currentPosition;
+        trackService.addPosition(LatLng(coords.latitude, coords.longitude));
         checkDistanceToTrack(_currentPosition);
       });
     }
@@ -280,6 +294,11 @@ class MapTrackState extends State<MapTrack> {
                 points: widget.trackService.gpxFileData.gpxLatlng,
                 strokeWidth: 4.0,
                 color: Colors.blueAccent,
+              ),
+              Polyline(
+                points: _lastPositions ? widget.trackService.lastPositions : [],
+                strokeWidth: 4.0,
+                color: Colors.green,
               )
             ],
             onTap: (Polyline polyline, LatLng latlng, int polylineIdx ) => _onTap("track", polyline, latlng, polylineIdx)

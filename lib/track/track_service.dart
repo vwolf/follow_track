@@ -36,6 +36,10 @@ class TrackService {
 
   LatLng currentPosition;
 
+  /// Save x locations in a list to display last steps
+  List<LatLng> lastPositions = [];
+  int positionsToSave = 24;
+
   /// Read file and parse into TourGpxData.
   ///
   /// Convert GpxCoords to [LatLng].
@@ -250,7 +254,32 @@ class TrackService {
       //callback(this);
     }
   }
+
+  /// Add current [LatLng] to [lastLocations] list
+  addPosition(LatLng currentPosition) {
+    lastPositions.add(currentPosition);
+
+    if ( lastPositions.length > positionsToSave) {
+      lastPositions.removeAt(0);
+    }
+  }
+
+  // this is just for testing
+  setLastLocations() {
+    lastPositions = [];
+    lastPositions.add(LatLng(59.272603299, 14.80785219));
+    lastPositions.add(LatLng(59.273079392, 14.807238886));
+    lastPositions.add(LatLng(59.273290448, 14.805954695));
+    lastPositions.add(LatLng(59.273043433, 14.804689363));
+    lastPositions.add(LatLng(59.272715533, 14.804306058));
+    lastPositions.add(LatLng(59.272913178, 14.803261422));
+    lastPositions.add(LatLng(59.272688627, 14.801070141));
+    lastPositions.add(LatLng(59.272221504, 14.799431395));
+    lastPositions.add(LatLng(59.268772267, 14.796442743));
+    lastPositions.add(LatLng(59.267294537, 14.79602105));
+  }
 }
+
 
 /// Stream messages
 class TrackPageStreamMsg {

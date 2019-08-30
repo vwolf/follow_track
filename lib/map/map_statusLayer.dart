@@ -179,6 +179,14 @@ class MapStatusState extends State<MapStatus> {
                 ),
                 onPressed: () => iconAction('info_on'),
               ),
+              IconButton(
+                icon: Icon(
+                  Icons.beenhere,
+                  color: Colors.orangeAccent,
+                  size: 36.0,
+                ),
+                onPressed: () => iconAction('lastPositions_on'),
+              ),
             ],
           )
         ],
