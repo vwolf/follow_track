@@ -461,20 +461,20 @@ class MapTrackState extends State<MapTrack> {
     return circleMarkers;
   }
 
-  List<MapPointInfo> get mapPointInfo => makeMapPointInfo();
-
-  List<MapPointInfo> makeMapPointInfo() {
-    var mapPointInfo = <MapPointInfo>[
-      MapPointInfo(
-          point: _circlePosition,
-          color: Colors.blue.withOpacity(0.7),
-          borderStrokeWidth: 1.0,
-          useRadiusInMeter: true,
-          radius: 100
-      ),
-    ];
-    return mapPointInfo;
-  }
+//  List<MapPointInfo> get mapPointInfo => makeMapPointInfo();
+//
+//  List<MapPointInfo> makeMapPointInfo() {
+//    var mapPointInfo = <MapPointInfo>[
+//      MapPointInfo(
+//          point: _circlePosition,
+//          color: Colors.blue.withOpacity(0.7),
+//          borderStrokeWidth: 1.0,
+//          useRadiusInMeter: true,
+//          radius: 100
+//      ),
+//    ];
+//    return mapPointInfo;
+//  }
 
   List<MapInfoElement> get mapInfoElements => makeMapInfos();
 
@@ -537,7 +537,8 @@ class MapTrackState extends State<MapTrack> {
     print("_handleLongPress at $latlng");
   }
 
-  void _handlePositionChange(MapPosition mapPosition, bool hasGesture, bool isUserGesture) {
+  void _handlePositionChange(MapPosition mapPosition, bool hasGesture) {
+    // , bool isUserGesture
 //    print("_handlePositionChange");
 //    print(_mapController.zoom);
     _mapStatusLayer.zoomNotification(_mapController.zoom.toInt());

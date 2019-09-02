@@ -202,3 +202,5 @@ class MapInfoPainter extends CustomPainter {
   @override
   bool shouldRepaint(MapInfoPainter other) => false;
 }
+
+class MapPointInfo {}
