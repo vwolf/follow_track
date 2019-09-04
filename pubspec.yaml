@@ -35,7 +35,7 @@ dev_dependencies:
   xml: ^3.2.3
   path_provider_ex:
 
-  # path_provider: ^1.1.0
+  path_provider: ^1.2.0
   # flutter_map: ^0.5.5
 
 # For information on the generic Dart part of this file, see the

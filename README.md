@@ -61,3 +61,11 @@ Load gpx data
     - for small areas it should be possible to store the map tiles on internal storage
 
 SD card as internal storage?
+
+ToDo Implement directory picker to get directory with track data
+
+Current:
+Gpx files on sd card must be in directory "Tracks", set in "fileIO/settings.dart".
+Supporting data (waypoints, images) for an gpx track must be in directory with track name in
+directory "Tracks".
+Map tiles for offline map function are on sd card in directory "OfflineMapTiles", set in "fileIO/settings".

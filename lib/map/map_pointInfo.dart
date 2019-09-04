@@ -190,7 +190,7 @@ class MapInfoPainter extends CustomPainter {
 
     final TextPainter textPainter = TextPainter(
       text: TextSpan(text: text, style: TextStyle(color: Colors.black, fontSize: 12.0)),
-      textAlign: TextAlign.center,
+      textAlign: TextAlign.left,
       textDirection: TextDirection.ltr
     )..layout(maxWidth: 200.0 - 24.0);
 

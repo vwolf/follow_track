@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix0;
 
 import 'package:latlong/latlong.dart';
 
@@ -34,6 +36,7 @@ class MapPageState extends State<MapPage> {
   /// communication with map via streams
   StreamController<TrackPageStreamMsg> _streamController = StreamController.broadcast();
   //String _gpxFilePath;
+
   MapTrack get _mapTrack => MapTrack(widget.trackService, _streamController);
 
   //bool _offlineMapDialog = false;
@@ -108,7 +111,10 @@ class MapPageState extends State<MapPage> {
 
   /// Show a [PersistentBottomSheet]
   /// First close open [PersistentBottomSheet]
-  openPersistentBottomSheet() {
+  /// Todo Sometimes error 'removeLocalHistoryEntry' was called on null.
+  /// Todo [_persistentBottomSheetController] not null even bottomSheet is no visible?
+  /// added async await [_persistentBottomSheetController].closed
+  openPersistentBottomSheet() async {
     if (_persistentBottomSheetController == null ) {
       setState(() {
         getDistance();
@@ -120,6 +126,7 @@ class MapPageState extends State<MapPage> {
 
     } else {
       _persistentBottomSheetController.close();
+      await _persistentBottomSheetController.closed;
       _persistentBottomSheetController = null;
     }
   }
@@ -144,29 +151,68 @@ class MapPageState extends State<MapPage> {
 
   /// Track infos
   ///
+//  Widget get _trackInfoSheet {
+//    return Container(
+//      color: Colors.blueGrey,
+//      width: double.infinity,
+//      padding: EdgeInsets.only(top: 0.0, bottom: 2.0),
+//      constraints: BoxConstraints.loose(Size(double.infinity, 240.0)),
+//          child: ListView(
+//            //padding: EdgeInsets.zero,
+//            padding: EdgeInsets.symmetric(vertical: 0.0,  horizontal: 0.0),
+//            //padding: EdgeInsets.all(0.0),
+//            children: <Widget>[
+//              ListTile(
+//                title: Text("Description: ${_mapTrack.trackService.gpxFileData.trackDescriptions}"),
+//              ),
+//              ListTile(
+//                //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
+//                title: Text("Track length: ${_mapTrack.trackService.trackLength.truncate()} meter"),
+//              ),
+//              ListTile(
+//                //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
+//                title: Text("Distance to start point: $distanceToStart m"),   //${getDistanceTo().toString()}
+//              ),
+//              ListTile(
+//                title: Text("Distance to end point: $distanceToEnd m"),
+//              )
+//            ],
+//          ),
+//    );
+//  }
+
+  /// Bottomsheet content for track info
+  /// ToDo Needs some style and more possible content (profile height?)
+  ///
   Widget get _trackInfoSheet {
+    bool description = _mapTrack.trackService.gpxFileData.trackDescriptions.length > 0 ? true : false;
+    bool location = _mapTrack.trackService.currentPosition != null ? true : false;
+
     return Container(
       color: Colors.blueGrey,
       width: double.infinity,
-      padding: EdgeInsets.only(top: 0.0, bottom: 2.0),
+      padding: EdgeInsets.only(top: 10.0, bottom: 2.0, left: 12.0),
       constraints: BoxConstraints.loose(Size(double.infinity, 240.0)),
-          child: ListView(
-            //padding: EdgeInsets.symmetric(vertical: 2.0,  horizontal: 0.0),
-            //padding: EdgeInsets.all(0.0),
-            children: <Widget>[
-              ListTile(
-                //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
-                title: Text("Track length: ${_mapTrack.trackService.trackLength.truncate()} meter"),
-              ),
-              ListTile(
-                //contentPadding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
-                title: Text("Distance to start point: $distanceToStart m"),   //${getDistanceTo().toString()}
-              ),
-              ListTile(
-                title: Text("Distance to end point: $distanceToEnd m"),
-              )
-            ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+              padding: EdgeInsets.only( top: (description == true ?  12.0 : 0.0)),
+              child: description ? Text( "${_mapTrack.trackService.gpxFileData.trackDescriptions}", style: TextStyle(fontWeight: FontWeight.bold)) : Container(),
           ),
+
+          Divider(color: Colors.white),
+          Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text("Track length: ${_mapTrack.trackService.trackLength.truncate()} meter"),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(location ? "Distance current position from start point: $distanceToStart" : "No current position"),
+          ),
+          Divider(color: Colors.white,)
+        ],
+      )
     );
   }
 

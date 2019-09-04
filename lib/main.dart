@@ -8,7 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider_ex/path_provider_ex.dart';
-
+//import 'package:path_provider/path_provider.dart';
 
 import 'models/track.dart';
 import 'map/map_page.dart';
@@ -160,6 +160,7 @@ class _MainPageState extends State<MainPage> {
       // storage sd card (external)
       try {
         storageInfo = await PathProviderEx.getStorageInfo();
+
       } on PlatformException {}
 
       if (mounted) {

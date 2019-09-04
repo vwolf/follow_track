@@ -264,7 +264,7 @@ class TrackService {
     }
   }
 
-  // this is just for testing
+  // this is just for testing no-sf-s12-11
   setLastLocations() {
     lastPositions = [];
     lastPositions.add(LatLng(59.272603299, 14.80785219));

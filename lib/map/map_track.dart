@@ -57,7 +57,7 @@ class MapTrackState extends State<MapTrack> {
 
   // MapController and plugin layer
   MapController _mapController = MapController();
-  MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...");
+  MapStatusLayer _mapStatusLayer = MapStatusLayer(false, false, "...", false);
   MapScaleElement _mapScaleElement = MapScaleElement(100.0, "");
   MapInfoElement _mapInfoElement = MapInfoElement(
       point: LatLng(0.0, 0.0),
@@ -171,8 +171,16 @@ class MapTrackState extends State<MapTrack> {
             break;
 
           case "lastPositions_on" :
-            _lastPositions = !_lastPositions;
-           // trackService.setLastLocations();
+            if (_lastPositions) {
+              _lastPositions = false;
+            } else {
+              //trackService.setLastLocations();
+              if (trackService.lastPositions.length > 0 && !_lastPositions ){
+                _lastPositions = true;
+              }
+            }
+
+            _mapStatusLayer.statusNotification(event.msg, _lastPositions);
             setState(() {
 
             });
@@ -239,8 +247,12 @@ class MapTrackState extends State<MapTrack> {
       GeoLocationService.gls.subscribeToPositionStream(geoLocationStreamController);
     } else {
       GeoLocationService.gls.unsubscribeToPositionStream();
-
+      trackService.currentPosition = null;
     }
+  }
+
+  bool getGeoLocationStreamState() {
+    return true;
   }
 
   /// Current geo location from [GeoLocationService] as [Position].
@@ -504,6 +516,14 @@ class MapTrackState extends State<MapTrack> {
       case "Food" :
         return Icons.local_dining;
         break;
+      case "Swim" :
+        return Icons.pool;
+        break;
+      case "Warning" :
+        return Icons.warning;
+        break;
+      case "Train" :
+        return Icons.train;
       default:
         return Icons.home;
     }

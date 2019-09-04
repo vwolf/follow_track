@@ -39,13 +39,42 @@ class GpxParser {
     });
 
     // get track name, try <metadata><name>
+    /// parse metadata for common and special infos about track
+    /// use: name (string), desc (string), keywords (xsd:string)
+    /// author, copyright, link,
     String trackName = "";
     Iterable<xml.XmlElement>metadataItems = document.findAllElements('metadata');
+//    if (metadataItems.length > 0) {
+//      metadataItems.forEach((f) =>
+//      {
+//        print("metadata  ${f.name}"),
+//        print("metadata.children: ${f.children.length}"),
+//        for (var i = 0; i < f.children.length; i++) {
+//          print(f.children[i].toString()),
+//          print(f.children[i].nodeType.toString()),
+//          print(getValue(f.findElements("name"))),
+////          if (f.attributes.length > 0) {
+////            f.attributes.forEach( (e) => {
+////              print("attributs.name: ${e.name}")
+////            })
+////          }
+////          print(f.attributes.forEach((e) => {
+////            print("")
+////          }))
+//        }
+//      }
+//            //(())print("metadata.attribute: ${f.attributes}"));
+//      );
+//    }
+
+
     metadataItems.map((xml.XmlElement metadataItem) {
       trackName = getValue(metadataItem.findElements('name'));
         if (trackName == null) {
           trackName = getValue(metadataItem.findElements('desc'));
         }
+        String description = getValue(metadataItem.findElements("description"));
+        gpxFileData.trackDescriptions = description;
     }).toList(growable: true);
 
     // track segment name
@@ -126,6 +155,7 @@ class GpxParser {
 /// Class GpxFileData holds the parsed data from a *.gpx file
 class GpxFileData {
   String trackName = "";
+  String trackDescriptions = "";
   String trackSeqName = "";
   LatLng defaultCoord = LatLng(53.00, 13.10);
   List<GpxCoords> gpxCoords = [];

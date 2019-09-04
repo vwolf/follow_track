@@ -24,9 +24,11 @@ class MapStatusLayer implements MapPlugin {
   bool offline = false;
   String status = "";
 
+  bool lastPosition = false;
+
   Map<String, int> zoom = { "zoom_min": 1, "zoom_max": 1, "zoom": 1};
 
-  MapStatusLayer(this.locationOn, this.offline, this.status);
+  MapStatusLayer(this.locationOn, this.offline, this.status, this.lastPosition);
 
 
   @override
@@ -42,7 +44,8 @@ class MapStatusLayer implements MapPlugin {
             "zoom_min": mapState.options.minZoom,
             "zoom_max": mapState.options.maxZoom,
             "zoom": mapState.options.zoom
-          }
+          },
+          lastPosition: lastPosition
       );
     }
   }
@@ -63,6 +66,11 @@ class MapStatusLayer implements MapPlugin {
         this.offline = value;
         break;
       case "zoom_in" :
+        break;
+
+      case "lastPositions_on" :
+        this.lastPosition = value;
+        break;
         //this.zoom["zoom"] = value;
     }
 
@@ -93,8 +101,9 @@ class MapStatus extends StatefulWidget {
   final offline;
   final status;
   final zoom;
+  final lastPosition;
 
-  MapStatus({this.streamCtrl, this.locationOn, this.offline, this.status, this.zoom});
+  MapStatus({this.streamCtrl, this.locationOn, this.offline, this.status, this.zoom, this.lastPosition});
 
   @override
   MapStatusState createState() => MapStatusState();
@@ -182,8 +191,8 @@ class MapStatusState extends State<MapStatus> {
               IconButton(
                 icon: Icon(
                   Icons.beenhere,
-                  color: Colors.orangeAccent,
-                  size: 36.0,
+                  color: widget.lastPosition ? Colors.orangeAccent : Colors.black26,
+                  size: 32.0,
                 ),
                 onPressed: () => iconAction('lastPositions_on'),
               ),
